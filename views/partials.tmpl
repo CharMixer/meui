@@ -1,0 +1,349 @@
+{{ define "htmlbegin" }}
+<html>
+<head>
+
+  <meta charset="utf-8">
+
+  <title>{{ .title }}</title>
+  <meta name="description" content="{{ .title }}">
+  <meta name="author" content="CharMixer">
+
+  <!-- load all styles -->
+  <!--<link rel="stylesheet" type="text/css" href="/public/lib/semanticui/semantic.min.css"> -->
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.7.8/dist/semantic.min.css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+
+  {{ range $value := .links }}
+    <link rel="{{ or $value.rel "stylesheet" }}" type="{{ or $value.type "text/css" }}" href="{{ $value.href }}">
+  {{ end }}
+
+  <!-- load all scripts -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.7.8/dist/semantic.min.js"></script>
+  <!-- <script src="/public/lib/semanticui/semantic.min.js"></script>-->
+  {{ range $value := .scripts }}
+    <script type="{{ or $value.type "text/javascript" }}" src="{{ $value.src }}"></script>
+  {{ end }}
+
+</head>
+  <body>
+{{ end }}
+
+{{ define "providerheader" }}
+<h2 class="ui left aligned inverted header">
+  <img class="ui large image" src="/public/images/fingerprint.svg" />
+  <div class="content">
+    {{ .provider }}
+    <div class="sub header">{{ .provideraction }}</div>
+  </div>
+</h2>
+{{ end}}
+
+{{ define "header" }}
+<div class="menu-icon">
+  <i class="fas fa-bars"></i>
+</div>
+
+<header class="header">
+  <h1>{{ .title }}</h1>
+</header>
+{{ end }}
+
+{{ define "sidenav" }}
+<aside class="sidenav">
+  <div class="sidenav__logo">
+    <!--<img src="/public/images/fingerprint.svg" alt="Fingerprint" id="fingerprint" />-->
+  </div>
+
+  <div class="sidenav__identity">
+    <img class="ui avatar mini image" src="https://via.placeholder.com/150" />
+    <span>{{ .name }}</span>
+  </div>
+
+  <ul class="sidenav__list">
+
+    <li class="sidenav__list-seperator">Identity</li>
+    <li class="sidenav__list-item"><a href="{{.idpUiUrl}}/me">Profile</a></li>
+    <li class="sidenav__list-item"><a href="{{.idpUiUrl}}/invites">Invites</a></li>
+    <li class="sidenav__list-item"><a href="{{.idpUiUrl}}/follows">Followers</a></li>
+
+    <li class="sidenav__list-seperator">Access & Authorization</li>
+    <li class="sidenav__list-item"><a href="{{.aapUiUrl}}/access">Access</a></li>
+
+  </ul>
+  <div class="sidenav__close-icon">
+    <i class="fas fa-times"></i>
+  </div>
+</aside>
+
+<script>
+  $(document).ready(function(){
+    const menuIconEl = $('.menu-icon');
+    const sidenavEl = $('.sidenav');
+    const sidenavCloseEl = $('.sidenav__close-icon');
+
+    // Add and remove provided class names
+    function toggleClassName(el, className) {
+      if (el.hasClass(className)) {
+        el.removeClass(className);
+      } else {
+        el.addClass(className);
+      }
+    }
+
+    // Open the side nav on click
+    menuIconEl.on('click', function() {
+      toggleClassName(sidenavEl, 'active');
+    });
+
+    // Close the side nav on click
+    sidenavCloseEl.on('click', function() {
+      toggleClassName(sidenavEl, 'active');
+    });
+  });
+</script>
+{{ end }}
+
+{{ define "footer" }}
+<footer class="footer">
+  <div class="footer__copyright">&copy; 2019</div>
+  <div class="footer__signature">Made with love by pure genius</div>
+
+</footer>
+{{ end }}
+
+{{ define "htmlend" }}
+  </body>
+</html>
+{{ end }}
+
+{{ define "input.email" }}
+{{if .errorEmail}}
+  <div class="required field {{if .errorEmail}}error{{end}}">
+    <div class="ui right labeled left icon input focus">
+      <i class="mail icon"></i>
+      <input type="text" name="email" autocomplete="email" placeholder="E-mail" value="{{.email}}" required />
+      <div class="ui red tag label">
+        {{ .errorEmail }}
+      </div>
+    </div>
+  </div>
+{{else}}
+  <div class="required field">
+    <div class="ui left icon input focus">
+      <i class="mail icon"></i>
+      <input type="text" name="email" autocomplete="email" placeholder="E-mail" value="{{.email}}" required />
+    </div>
+  </div>
+{{end}}
+{{ end }}
+
+{{ define "input.display-name" }}
+{{if .errorDisplayName}}
+  <div class="required field {{if .errorDisplayName}}error{{end}}">
+    <div class="ui right labeled left icon input focus">
+      <i class="user icon"></i>
+      <input type="text" name="display-name" autocomplete="name" placeholder="Name" value="{{.displayName}}" required />
+      <div class="ui red tag label">
+        {{ .errorDisplayName }}
+      </div>
+    </div>
+  </div>
+{{else}}
+  <div class="required field">
+    <div class="ui left icon input focus">
+      <i class="user icon"></i>
+      <input type="text" name="display-name" autocomplete="name" placeholder="Name" value="{{.displayName}}" required />
+    </div>
+  </div>
+{{end}}
+{{ end }}
+
+{{ define "input.username" }}
+{{if .errorUsername}}
+  <div class="required field {{if .errorUsername}}error{{end}}">
+    <div class="ui right labeled left icon input focus">
+      <i class="user circle icon"></i>
+      <input type="text" name="username" autocomplete="username" placeholder="Username" value="{{.username}}" required />
+      <div class="ui red tag label">
+        {{ .errorUsername }}
+      </div>
+    </div>
+  </div>
+{{else}}
+  <div class="required field">
+    <div class="ui left icon input focus">
+      <i class="user circle icon"></i>
+      <input type="text" name="username" autocomplete="username" placeholder="Username" value="{{.username}}" required />
+    </div>
+  </div>
+{{end}}
+{{ end }}
+
+{{ define "input.hint_username" }}
+{{if .errorHintUsername}}
+  <div class="required field {{if .errorHintUsername}}error{{end}}">
+    <div class="ui right labeled left icon input focus">
+      <i class="user circle icon"></i>
+      <input type="text" name="hint_username" placeholder="Hint Username" value="{{.hint_username}}" />
+      <div class="ui red tag label">
+        {{ .errorHintUsername }}
+      </div>
+    </div>
+  </div>
+{{else}}
+  <div class="required field">
+    <div class="ui left icon input focus">
+      <i class="user circle icon"></i>
+      <input type="text" name="hint_username" placeholder="Hint Username" value="{{.hint_username}}" />
+    </div>
+  </div>
+{{end}}
+{{ end }}
+
+{{ define "input.password" }}
+{{if .errorPassword}}
+  <div class="required field {{if .errorPassword}}error{{end}}">
+    <div class="ui right labeled left icon input focus">
+      <i class="lock icon"></i>
+      <input type="password" name="password" autocomplete="new-password" placeholder="Password" required />
+      <div class="ui red tag label">
+        {{ .errorPassword }}
+      </div>
+    </div>
+  </div>
+{{else}}
+  <div class="required field">
+    <div class="ui left icon input focus">
+      <i class="lock icon"></i>
+      <input type="password" name="password" autocomplete="new-password" placeholder="Password" required />
+    </div>
+  </div>
+{{end}}
+{{ end }}
+
+{{ define "input.password_retyped" }}
+{{if .errorPasswordRetyped}}
+  <div class="required field {{if .errorPasswordRetyped}}error{{end}}">
+    <div class="ui right labeled left icon input focus">
+      <i class="lock icon"></i>
+      <input type="password" name="password_retyped" autocomplete="new-password" placeholder="Password retyped" required />
+      <div class="ui red tag label">
+        {{ .errorPasswordRetyped }}
+      </div>
+    </div>
+  </div>
+{{else}}
+  <div class="required field">
+    <div class="ui left icon input focus">
+      <i class="lock icon"></i>
+      <input type="password" name="password_retyped" autocomplete="new-password" placeholder="Password retyped" required />
+    </div>
+  </div>
+{{end}}
+{{ end }}
+
+{{ define "input.totp" }}
+{{if .errorTotp}}
+<div class="required field {{if .errorTotp}}error{{end}}">
+  <div class="ui right labeled left icon input focus">
+    <i class="lock icon"></i>
+    <input type="password" name="totp" placeholder="Enter code" required />
+    <div class="ui red tag label">
+      {{ .errorTotp }}
+    </div>
+  </div>
+</div>
+{{else}}
+<div class="required field">
+  <div class="ui left icon input focus">
+    <i class="lock icon"></i>
+    <input type="password" name="totp" placeholder="Enter code" required />
+  </div>
+</div>
+{{end}}
+{{ end }}
+
+{{ define "input.code" }}
+{{if .errorCode}}
+  <div class="required field {{if .errorCode}}error{{end}}">
+    <div class="ui right labeled left icon input focus">
+      <i class="lock icon"></i>
+      <input name="code" type="password" placeholder="Code" required>
+      <div class="ui red tag label">
+        {{ .errorCode }}
+      </div>
+    </div>
+  </div>
+{{else}}
+  <div class="required field">
+    <div class="ui left icon input focus">
+      <i class="lock icon"></i>
+      <input name="code" type="password" placeholder="Code" required>
+    </div>
+  </div>
+{{end}}
+{{ end }}
+
+{{ define "input.verification_code" }}
+{{if .errorVerificationCode}}
+  <div class="required field {{if .errorVerificationCode}}error{{end}}">
+    <div class="ui right labeled left icon input focus">
+      <i class="lock icon"></i>
+      <input name="verification_code" type="password" placeholder="Code" required>
+      <div class="ui red tag label">
+        {{ .errorVerificationCode }}
+      </div>
+    </div>
+  </div>
+{{else}}
+  <div class="required field">
+    <div class="ui left icon input focus">
+      <i class="lock icon"></i>
+      <input name="verification_code" type="password" placeholder="Code" required>
+    </div>
+  </div>
+{{end}}
+{{ end }}
+
+{{ define "input.risk_accepted"}}
+{{if .errorRiskAccepted}}
+  <div class="required field {{if .errorRiskAccepted}}error{{end}}">
+    <div class="ui right labeled checkbox">
+      <input type="checkbox" tabindex="0" name="risk_accepted" value="accept">
+      <label for="risk_accepted">I accept the risk of deleting my profile</label>
+    </div>
+    <div class="ui red tag label" style="margin-left: 20px;">
+      {{ .errorRiskAccepted }}
+    </div>
+  </div>
+{{else}}
+  <div class="required field">
+    <div class="ui checkbox">
+      <input type="checkbox" tabindex="0" name="risk_accepted" value="accept">
+      <label for="risk_accepted">I accept the risk of deleting my profile</label>
+    </div>
+  </div>
+{{end}}
+{{ end }}
+
+{{ define "input.exp" }}
+{{if .errorExp}}
+  <div class="required field {{if .errorExp}}error{{end}}">
+    <div class="ui right labeled left icon input focus">
+      <i class="clock icon"></i>
+      <input type="text" name="exp" placeholder="Expires at" value="{{.exp}}" required />
+      <div class="ui red tag label">
+        {{ .errorExp }}
+      </div>
+    </div>
+  </div>
+{{else}}
+  <div class="required field">
+    <div class="ui left icon input focus">
+      <i class="clock icon"></i>
+      <input type="text" name="exp" placeholder="Expires at" value="{{.exp}}" required />
+    </div>
+  </div>
+{{end}}
+{{ end }}
