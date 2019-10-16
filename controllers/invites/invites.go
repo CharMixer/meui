@@ -77,7 +77,7 @@ func ShowInvites(env *environment.State) gin.HandlerFunc {
         q.Add("id", invite.Id)
         grantsUrl.RawQuery = q.Encode()
 
-        sendUrl, err := url.Parse(config.GetString("idpui.public.url") + config.GetString("idpui.public.endpoints.invites.send"))
+        sendUrl, err := url.Parse(config.GetString("meui.public.url") + config.GetString("meui.public.endpoints.invites.send"))
         if err != nil {
           log.Debug(err.Error())
           c.AbortWithStatus(http.StatusInternalServerError)

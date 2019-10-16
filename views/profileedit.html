@@ -1,45 +1,31 @@
 {{ template "htmlbegin" . }}
+{{ template "dashboardbegin" . }}
 
-<div class="grid-container">
+  <p>You are about to edit your personal information.</p>
 
-  {{ template "header" . }}
+  <div class="ui segments">
 
-  {{ template "sidenav" . }}
+    <div class="ui segment">
 
-  <main class="main">
-    
-    <div class="main__cards">
+      <div class="ui teal ribbon label">
+        <i class="user icon"></i> Edit
+      </div>
+      <span>Edit your profile</span>
 
-        <p>You are about to edit your personal information.</p>
+      <div class="ui hidden divider"></div>
 
-        <div class="ui segments">
+      <form class="ui form" action="{{ .profileEditUrl }}" method="post">
+        {{ .csrfField }}
 
-          <div class="ui segment">
+        {{template "input.display-name" . }}
+        {{template "input.email" . }}
 
-            <div class="ui teal ribbon label">
-              <i class="user icon"></i> Edit
-            </div>
-            <span>Edit your profile</span>
-
-            <div class="ui hidden divider"></div>
-
-            <form class="ui form" action="{{ .profileEditUrl }}" method="post">
-              {{ .csrfField }}
-
-              {{template "input.display-name" . }}
-              {{template "input.email" . }}
-
-              <button class="ui green button" type="submit"><i class="save icon"></i> Apply changes</button>
-            </form>
-
-          </div>
-
-        </div>
+        <button class="ui green button" type="submit"><i class="save icon"></i> Apply changes</button>
+      </form>
 
     </div>
-  </main>
 
-  {{ template "footer" . }}
-</div>
+  </div>
 
+{{ template "dashboardend" . }}
 {{ template "htmlend" . }}

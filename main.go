@@ -27,6 +27,8 @@ import (
   "github.com/charmixer/meui/controllers/callbacks"
   "github.com/charmixer/meui/controllers/profiles"
   "github.com/charmixer/meui/controllers/invites"
+  "github.com/charmixer/meui/controllers/access"
+  "github.com/charmixer/meui/controllers/grant"
 )
 
 const appName = "meui"
@@ -74,7 +76,7 @@ func init() {
     SessionAppStore: appName,
   }
 
-  gob.Register(&oauth2.Token{}) // This is required to make session in idpui able to persist tokens.
+  gob.Register(&oauth2.Token{}) // This is required to make session in meui able to persist tokens.
   gob.Register(&oidc.IDToken{})
   //gob.Register(&idp.Profile{})
   gob.Register(make(map[string][]string))
@@ -165,7 +167,7 @@ func serve(env *environment.State) {
   })
   r.Use(sessions.Sessions(env.SessionKeys.SessionAppStore, store))
 
-  // Use CSRF on all idpui forms.
+  // Use CSRF on all meui forms.
   adapterCSRF := adapter.Wrap(csrf.Protect([]byte(config.GetString("csrf.authKey")), csrf.Secure(true)))
   // r.Use(adapterCSRF) // Do not use this as it will make csrf tokens for public files aswell which is just extra data going over the wire, no need for that.
 
@@ -200,6 +202,13 @@ func serve(env *environment.State) {
     ep.POST( "/invites/send", AuthorizationRequired(env, "openid"), invites.SubmitInvitesSend(env) )
     ep.GET(  "/invite",       AuthorizationRequired(env, "openid"), invites.ShowInvite(env) )
     ep.POST( "/invite",       AuthorizationRequired(env, "openid"), invites.SubmitInvite(env) )
+
+    // Access
+    ep.GET(  "/access",         AuthorizationRequired(env, "openid"), access.ShowAccess(env))
+    ep.GET(  "/access/grant",   AuthorizationRequired(env, "openid"), grant.ShowGrants(env))
+    ep.POST( "/access/grant",   AuthorizationRequired(env, "openid"), grant.SubmitGrants(env))
+    ep.GET(  "/access/new",     AuthorizationRequired(env, "openid"), access.ShowAccessNew(env))
+    ep.POST( "/access/new",     AuthorizationRequired(env, "openid"), access.SubmitAccessNew(env))
 
     // Signoff
     ep.GET(  "/logout",       AuthorizationRequired(env, "openid"), profiles.ShowLogout(env) )

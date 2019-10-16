@@ -46,7 +46,7 @@ func ShowLogout(env *environment.State) gin.HandlerFunc {
       "provider": "Identity Provider",
       "provideraction": "Logout of the system",
       "challenge": logoutChallenge,
-      "logoutUrl": config.GetString("idpui.public.endpoints.logout"),
+      "logoutUrl": config.GetString("meui.public.endpoints.logout"),
     })
   }
   return gin.HandlerFunc(fn)
@@ -131,7 +131,7 @@ func ShowLogoutSession(env *environment.State) gin.HandlerFunc {
       csrf.TemplateTag: csrf.TemplateField(c.Request),
       "provider": "Identity Provider",
       "provideraction": "Reset login session",
-      "sessionLogoutUrl": config.GetString("idpui.public.endpoints.session.logout"),
+      "sessionLogoutUrl": config.GetString("meui.public.endpoints.session.logout"),
     })
   }
   return gin.HandlerFunc(fn)

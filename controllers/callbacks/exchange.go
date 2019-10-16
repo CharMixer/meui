@@ -24,7 +24,7 @@ func ExchangeAuthorizationCodeCallback(env *environment.State) gin.HandlerFunc {
     v := session.Get(environment.SessionStateKey)
     if v == nil {
       log.WithFields(logrus.Fields{"key": environment.SessionStateKey}).Debug("Request not initiated by app. Hint: Missing session state")
-      c.JSON(http.StatusBadRequest, gin.H{"error": "Request not initiated by idpui. Hint: Missing session state"})
+      c.JSON(http.StatusBadRequest, gin.H{"error": "Request not initiated by meui. Hint: Missing session state"})
       c.Abort()
       return;
     }
