@@ -67,14 +67,14 @@ func ShowInvites(env *environment.State) gin.HandlerFunc {
 
       for _, invite := range invites {
 
-        grantsUrl, err := url.Parse(config.GetString("aapui.public.url") + config.GetString("aapui.public.endpoints.access.grant"))
+        grantsUrl, err := url.Parse(config.GetString("meui.public.url") + config.GetString("meui.public.endpoints.access.grant"))
         if err != nil {
           log.Debug(err.Error())
           c.AbortWithStatus(http.StatusInternalServerError)
           return
         }
         q := grantsUrl.Query()
-        q.Add("id", invite.Id)
+        q.Add("receiver", invite.Id)
         grantsUrl.RawQuery = q.Encode()
 
         sendUrl, err := url.Parse(config.GetString("meui.public.url") + config.GetString("meui.public.endpoints.invites.send"))
