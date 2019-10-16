@@ -91,6 +91,13 @@
       <input type="hidden" name="Grants[{{ $key }}].Scope" value="{{ $publish.Scope }}" />
       <a class="ui red ribbon label" style="margin-bottom:10px">{{ $publish.Scope }}</a> {{ $publish.Title }}
 
+      <div class="inline field">
+        <label>May grant</label>
+        {{ range $k, $mgScope := $publish.MayGrantScopes }}
+          <a class="ui primary label">{{ $mgScope }}</a>
+        {{ end }}
+      </div>
+
       <div class="three fields">
         <div class="field">
           <label>Enable</label>
@@ -146,7 +153,15 @@
 
     $('.selection.dropdown').dropdown();
     $('.ui.checkbox').checkbox();
-    $('.menu .item').tab();
+    $('.menu .item').tab().on('click', function(){
+      localStorage.setItem('prev_tab', $(this).data('tab'));
+    }).each(function(i,e){
+      let prevTab = localStorage.getItem('prev_tab');
+      $(e).removeClass('active')
+      if ( $(e).data('tab') === prevTab ) {
+        $(e).tab('change tab', prevTab)
+      }
+    });
 
     $("input.startdate").each(function(i,e) {
       let isoDate = new Date().toISOString().substring(0,10)

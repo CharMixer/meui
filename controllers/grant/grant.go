@@ -106,12 +106,12 @@ func ShowGrants(env *environment.State) gin.HandlerFunc {
       }
 
       for _,p := range publishes {
-        if p.MayGrantScope == "" {
-          grantPublishes = append(grantPublishes, p)
+        if len(p.MayGrantScopes) > 0 {
+          mayGrantPublishes = append(mayGrantPublishes, p)
           continue
         }
 
-        mayGrantPublishes = append(mayGrantPublishes, p)
+        grantPublishes = append(grantPublishes, p)
       }
     }
 
