@@ -17,16 +17,17 @@ import (
   "github.com/charmixer/meui/config"
   "github.com/charmixer/meui/environment"
 
-  //"github.com/monoculum/formam"
+  "github.com/charmixer/meui/app"
   f "github.com/go-playground/form"
   "fmt"
 )
 
 type formInput struct {
+  Publisher     string
+  Receiver       string
   Grants        []struct{
-    Publisher      string
     Scope          string
-    Enable         bool
+    Enabled        bool
     StartDate      string
     EndDate        string
   }
@@ -42,7 +43,19 @@ func ShowGrants(env *environment.State) gin.HandlerFunc {
 
     session := sessions.Default(c)
 
+    identity := app.RequireIdentity(c)
+    if identity == nil {
+      log.Debug("Missing Identity")
+      c.AbortWithStatus(http.StatusForbidden)
+      return
+    }
+
     publisher, publisherExists := c.GetQuery("publisher")
+    receiver, receiverExists := c.GetQuery("receiver")
+
+    if !receiverExists {
+      receiver = identity.Id
+    }
 
     // NOTE: Maybe session is not a good way to do this.
     // 1. The user access /me with a browser and the access token / id token is stored in a session as we cannot make the browser redirect with Authentication: Bearer <token>
@@ -106,7 +119,7 @@ func ShowGrants(env *environment.State) gin.HandlerFunc {
 
     url = config.GetString("aap.public.url") + config.GetString("aap.public.endpoints.grants")
     _, responses, err = aap.ReadGrants(aapClient, url, []aap.ReadGrantsRequest{
-      {Scope: "openid", Publisher:"74ac5-4a3f-441f-9ed9-b8e3e9b1f13c"},
+      { Identity: receiver, Publisher: publisher},
     })
 
     if err != nil {
@@ -125,6 +138,11 @@ func ShowGrants(env *environment.State) gin.HandlerFunc {
 
       c.AbortWithStatus(404)
       return
+    }
+
+    var hasGrantsMap = make(map[string]bool, len(grants))
+    for _,g := range grants {
+      hasGrantsMap[g.Scope] = true
     }
 
     // fetch resourceservers
@@ -155,15 +173,14 @@ func ShowGrants(env *environment.State) gin.HandlerFunc {
       "links": []map[string]string{
         {"href": "/public/css/dashboard.css"},
       },
-      "idpUiUrl": config.GetString("meui.public.url"),
-      "aapUiUrl": config.GetString("aapui.public.url"),
 
       "title": "Grants",
-      "grants": grants,
+      "hasGrantsMap": hasGrantsMap,
       "grantPublishes": grantPublishes,
       "mayGrantPublishes": mayGrantPublishes,
       "resourceservers": resourceservers,
       "publisher": publisher,
+      "receiver": receiver,
     })
 
   }
@@ -188,21 +205,13 @@ func SubmitGrants(env *environment.State) gin.HandlerFunc {
     }
 
     publisher, publisherExists := c.GetQuery("publisher")
-    id, idExists := c.GetQuery("id")
+    receiver, receiverExists := c.GetQuery("receiver")
 
-    if !idExists {
-      sub, exists := c.Get("sub")
-
-      if exists {
-        id = sub.(string)
-      }
-    }
-
-    if !publisherExists || !idExists  {
+    if !publisherExists || !receiverExists  {
       log.WithFields(logrus.Fields{
         "publisher": publisher,
-        "id": id,
-      }).Debug("publisher and id must exists")
+        "receiver": receiver,
+      }).Debug("publisher and receiver must exists")
       c.AbortWithStatus(404)
       return
     }
@@ -220,53 +229,77 @@ func SubmitGrants(env *environment.State) gin.HandlerFunc {
       return
     }
 
-
-
     var accessToken *oauth2.Token
     accessToken = session.Get(environment.SessionTokenKey).(*oauth2.Token)
     aapClient := aap.NewAapClientWithUserAccessToken(env.HydraConfig, accessToken)
 
     var createGrantsRequests []aap.CreateGrantsRequest
     var deleteGrantsRequests []aap.DeleteGrantsRequest
-    for _,g := range form.Grants {
-      if g.Enable {
+    for _,grant := range form.Grants {
+      if grant.Enabled {
         createGrantsRequests = append(createGrantsRequests, aap.CreateGrantsRequest{
-          Identity: id,
-          Scope: g.Scope,
-          Publisher: g.Publisher,
+          Identity: receiver,
+          Scope: grant.Scope,
+          Publisher: publisher,
         })
         continue;
       }
 
       // deny by default
       deleteGrantsRequests = append(deleteGrantsRequests, aap.DeleteGrantsRequest{
-        Identity: id,
-        Scope: g.Scope,
-        Publisher: g.Publisher,
+        Identity: receiver,
+        Scope: grant.Scope,
+        Publisher: publisher,
       })
     }
 
     url := config.GetString("aap.public.url") + config.GetString("aap.public.endpoints.grants")
-    status, responses, err := aap.CreateGrants(aapClient, url, createGrantsRequests)
 
+    createStatus, createResponses, err := aap.CreateGrants(aapClient, url, createGrantsRequests)
     if err != nil {
       log.Debug(err.Error())
       c.AbortWithStatus(404)
       return
     }
 
-    if status == 200 {
-      var grants aap.CreateGrantsResponse
-      _, restErr := bulky.Unmarshal(0, responses, &grants)
+    /*
+    deleteStatus, deleteResponses, err := aap.DeleteGrants(aapClient, url, deleteGrantsRequests)
+
+    if err != nil {
+      log.Debug(err.Error())
+      c.AbortWithStatus(404)
+      return
+    }
+    */
+
+    if createStatus == 200 /* && deleteStatus == 200 */ {
+      var createGrants aap.CreateGrantsResponse
+      _, restErr := bulky.Unmarshal(0, createResponses, &createGrants)
       if restErr != nil {
         for _,e := range restErr {
           // TODO show user somehow
           log.Debug("Rest error: " + e.Error)
         }
         c.AbortWithStatus(404)
+        return
       }
 
-      c.Redirect(http.StatusFound, fmt.Sprintf("/access/grant?id=%s&publisher=%s", id, publisher))
+      /*
+      var deleteGrants aap.DeleteGrantsResponse
+      _, restErr = bulky.Unmarshal(0, deleteResponses, &deleteGrants)
+      if restErr != nil {
+        for _,e := range restErr {
+          // TODO show user somehow
+          log.Debug("Rest error: " + e.Error)
+        }
+        c.AbortWithStatus(404)
+        return
+      }
+      */
+
+      c.Redirect(http.StatusFound, fmt.Sprintf("/access/grant?receiver=%s&publisher=%s", receiver, publisher))
+      c.Abort()
+      return
     }
 
     c.AbortWithStatus(404)
