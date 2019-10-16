@@ -1,44 +1,30 @@
 {{ template "htmlbegin" . }}
+{{ template "dashboardbegin" . }}
 
-<div class="grid-container">
+  <div class="ui segments">
 
-  {{ template "header" . }}
+    <div class="ui segment">
 
-  {{ template "sidenav" . }}
+    <form class="ui form" action="{{ .inviteUrl }}" method="post">
+      {{ .csrfField }}
 
-  <main class="main">
+      <div class="ui teal ribbon label">
+        <i class="envelope icon"></i> Create
+      </div>
+      <span>Create an invite assigned to an E-mail</span>
 
-    <div class="main__cards">
+      <div class="ui hidden divider"></div>
 
-        <div class="ui segments">
+      {{template "input.email" . }}
+      {{template "input.username" . }}
+      {{template "input.exp" . }}
 
-          <div class="ui segment">
-
-          <form class="ui form" action="{{ .inviteUrl }}" method="post">
-            {{ .csrfField }}
-
-            <div class="ui teal ribbon label">
-              <i class="envelope icon"></i> Create
-            </div>
-            <span>Create an invite assigned to an E-mail</span>
-
-            <div class="ui hidden divider"></div>
-
-            {{template "input.email" . }}
-            {{template "input.username" . }}
-            {{template "input.exp" . }}
-
-            <button class="ui green button" type="submit"><i class="save icon"></i> Create Invite</button>
-          </form>
-
-          </div>
-
-        </div>
+      <button class="ui green button" type="submit"><i class="save icon"></i> Create Invite</button>
+    </form>
 
     </div>
-  </main>
 
-  {{ template "footer" . }}
-</div>
+  </div>
 
+{{ template "dashboardend" . }}
 {{ template "htmlend" . }}

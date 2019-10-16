@@ -117,7 +117,7 @@ func SubmitInvitesSend(env *environment.State) gin.HandlerFunc {
       if status == 200 {
         log.WithFields(logrus.Fields{"id": invite.Id}).Debug("Send invite")
 
-        redirectTo := config.GetString("idpui.public.url") + config.GetString("idpui.public.endpoints.invites.collection")
+        redirectTo := config.GetString("meui.public.url") + config.GetString("meui.public.endpoints.invites.collection")
         log.WithFields(logrus.Fields{"redirect_to": redirectTo}).Debug("Redirecting")
         c.Redirect(http.StatusFound, redirectTo)
         c.Abort()

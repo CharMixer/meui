@@ -1,0 +1,28 @@
+{{ template "htmlbegin" . }}
+{{ template "dashboardbegin" . }}
+
+  <div class="ui segments">
+    <div class="ui segment">
+
+      <form method="post" action="/access/new" class="ui form">
+        {{ .csrfField }}
+
+        <div class="field">
+          <label>Scope</label>
+          <input type="text" name="scope" placeholder="Scope">
+        </div>
+
+        <input type="submit" value="Create new scope" class="ui button primary float right" tabindex="0"/>
+      </form>
+
+      {{if .errors }}
+        {{ range $key, $error := .errors }}
+        <p>{{ $error.Error }}</p>
+        {{ end }}
+      {{ end }}
+
+    </div>
+  </div>
+
+{{ template "dashboardend" . }}
+{{ template "htmlend" . }}
