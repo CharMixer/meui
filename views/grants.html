@@ -22,7 +22,7 @@
     </div>
   </form>
 
-  <div class="ui pointing secondary menu">
+  <div class="ui tabs pointing secondary menu">
     <a class="item active" data-tab="g">Grant</a>
     <a class="item" data-tab="mg">May grant</a>
   </div>
@@ -153,10 +153,15 @@
 
     $('.selection.dropdown').dropdown();
     $('.ui.checkbox').checkbox();
-    $('.menu .item').tab().on('click', function(){
+    $('.tabs.menu .item').tab().on('click', function(){
       localStorage.setItem('prev_tab', $(this).data('tab'));
     }).each(function(i,e){
       let prevTab = localStorage.getItem('prev_tab');
+
+      if !prevTab {
+        return
+      }
+
       $(e).removeClass('active')
       if ( $(e).data('tab') === prevTab ) {
         $(e).tab('change tab', prevTab)
