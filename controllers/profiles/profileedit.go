@@ -4,6 +4,7 @@ import (
   "strings"
   "net/http"
   "reflect"
+  "fmt"
   "gopkg.in/go-playground/validator.v9"
   "github.com/sirupsen/logrus"
   "github.com/gin-gonic/gin"
@@ -22,7 +23,6 @@ import (
 
 type profileEditForm struct {
   Name string `form:"display-name" validate:"required,notblank"`
-  Email string `form:"email" validate:"required,email"`
 }
 
 func ShowProfileEdit(env *environment.State) gin.HandlerFunc {
@@ -43,8 +43,11 @@ func ShowProfileEdit(env *environment.State) gin.HandlerFunc {
     session := sessions.Default(c)
 
     // Retain the values that was submittet
-    submittetName := session.Get("profileedit.display-name")
-    submittetEmail := session.Get("profileedit.email")
+    var submittetName string
+    fau := session.Flashes("profileedit.display-name")
+    if fau != nil {
+      submittetName = fmt.Sprintf("%s", fau[0])
+    }
 
     errors := session.Flashes("profileedit.errors")
     err := session.Save() // Remove flashes read, and save submit fields
@@ -54,29 +57,17 @@ func ShowProfileEdit(env *environment.State) gin.HandlerFunc {
 
     // Use submittet value from flash or default from db.
     var displayName string
-    if submittetName == nil {
+    if submittetName == "" {
       displayName = identity.Name
     } else {
-      displayName = submittetName.(string)
+      displayName = submittetName
     }
 
-    var email string
-    if submittetEmail == nil {
-      email = identity.Email
-    } else {
-      email = submittetEmail.(string)
-    }
-
-    var errorEmail string
     var errorDisplayName string
 
     if len(errors) > 0 {
       errorsMap := errors[0].(map[string][]string)
       for k, v := range errorsMap {
-
-        if k == "email" && len(v) > 0 {
-          errorEmail = strings.Join(v, ", ")
-        }
 
         if k == "display-name" && len(v) > 0 {
           errorDisplayName = strings.Join(v, ", ")
@@ -90,11 +81,9 @@ func ShowProfileEdit(env *environment.State) gin.HandlerFunc {
         {"href": "/public/css/dashboard.css"},
       },
       csrf.TemplateTag: csrf.TemplateField(c.Request),
-      "profileEditUrl": "/me/edit",
+      "profileEditUrl": config.GetString("meui.public.url") + config.GetString("meui.public.endpoints.edit"),
       "user": identity.Id,
       "displayName": displayName,
-      "email": email,
-      "errorEmail": errorEmail,
       "errorDisplayName": errorDisplayName,
       "name": identity.Name,
       "registeredDisplayName": identity.Name,
@@ -131,8 +120,7 @@ func SubmitProfileEdit(env *environment.State) gin.HandlerFunc {
     session := sessions.Default(c)
 
     // Save values if submit fails
-    session.Set("profileedit.display-name", form.Name)
-    session.Set("profileedit.email", form.Email)
+    session.AddFlash(form.Name, "profileedit.display-name")
     err = session.Save()
     if err != nil {
       log.Debug(err.Error())
@@ -207,7 +195,6 @@ func SubmitProfileEdit(env *environment.State) gin.HandlerFunc {
 
     identityRequest := []idp.UpdateHumansRequest{{
       Id: identity.Id,
-      Email: form.Email,
       Name: form.Name,
     }}
     _, updatedHumans, err := idp.UpdateHumans(idpClient, config.GetString("idp.public.url") + config.GetString("idp.public.endpoints.humans.collection"), identityRequest)
@@ -232,7 +219,7 @@ func SubmitProfileEdit(env *environment.State) gin.HandlerFunc {
 
       // Cleanup session
       session.Delete("profileedit.display-name")
-      session.Delete("profileedit.email")
+      session.Delete("profileedit.errors")
       err = session.Save()
       if err != nil {
         log.Debug(err.Error())
