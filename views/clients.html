@@ -1,0 +1,39 @@
+{{ template "htmlbegin" . }}
+{{ template "dashboardbegin" . }}
+
+  <a href="/client" style="margin-top:5px" class="ui green label"><i class="dragon icon"></i> Create Client</a>
+
+  <div class="ui segments">
+
+    <div class="ui segment">
+
+      <div class="ui teal ribbon label">
+        <i class="dragon icon"></i> Clients
+      </div>
+      <span>Clients created by you</span>
+
+      {{ if .created }}
+      <table class="ui selectable striped celled table">
+      <thead>
+        <tr>
+          <th>Id</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range $client := .created}}
+        <tr>
+          <td data-label="Id">{{ $client.Id }}</td>
+          <td data-label="Grants"><a href="{{ $client.GrantsUrl }}" class="ui green label"><i class="user lock icon"></i> Show Grants</a></td>
+        </tr>
+        {{end}}
+      </tbody>
+      </table>
+      {{ end}}
+
+    </div>
+
+  </div>
+
+{{ template "dashboardend" . }}
+{{ template "htmlend" . }}
