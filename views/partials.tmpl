@@ -49,6 +49,10 @@
   <i class="paper plane icon"></i>
   Invites
 </a>
+<a class="item" href="/clients">
+  <i class="dragon icon"></i>
+  Clients
+</a>
 
 <div class="item" style="margin-top:30px">
   <b>Access & Authorization</b>
@@ -181,6 +185,27 @@ $(function(){
     <div class="ui left icon input focus">
       <i class="user icon"></i>
       <input type="text" name="display-name" autocomplete="name" placeholder="Name" value="{{.displayName}}" required />
+    </div>
+  </div>
+{{end}}
+{{ end }}
+
+{{ define "input.client-name" }}
+{{if .errorClientName}}
+  <div class="required field {{if .errorClientName}}error{{end}}">
+    <div class="ui right labeled left icon input focus">
+      <i class="dragon icon"></i>
+      <input type="text" name="client-name" placeholder="Name" value="{{.clientName}}" required />
+      <div class="ui red tag label">
+        {{ .errorClientName }}
+      </div>
+    </div>
+  </div>
+{{else}}
+  <div class="required field">
+    <div class="ui left icon input focus">
+      <i class="dragon icon"></i>
+      <input type="text" name="client-name" placeholder="Name" value="{{.clientName}}" required />
     </div>
   </div>
 {{end}}
@@ -370,6 +395,27 @@ $(function(){
     <div class="ui left icon input focus">
       <i class="clock icon"></i>
       <input type="text" name="exp" placeholder="Expires at" value="{{.exp}}" required />
+    </div>
+  </div>
+{{end}}
+{{ end }}
+
+{{ define "input.description" }}
+{{if .errorDescription}}
+  <div class="required field {{if .errorDescription}}error{{end}}">
+    <div class="ui right labeled left icon input focus">
+      <i class="info icon"></i>
+      <input type="text" name="description" placeholder="Description" value="{{.description}}" required />
+      <div class="ui red tag label">
+        {{ .errorDescription }}
+      </div>
+    </div>
+  </div>
+{{else}}
+  <div class="required field">
+    <div class="ui left icon input focus">
+      <i class="info icon"></i>
+      <input type="text" name="description" autocomplete="Description" placeholder="Description" value="{{.description}}" required />
     </div>
   </div>
 {{end}}

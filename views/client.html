@@ -1,0 +1,29 @@
+{{ template "htmlbegin" . }}
+{{ template "dashboardbegin" . }}
+
+  <div class="ui segments">
+
+    <div class="ui segment">
+
+    <form class="ui form" action="{{ .clientUrl }}" method="post">
+      {{ .csrfField }}
+
+      <div class="ui teal ribbon label">
+        <i class="dragon icon"></i> Create
+      </div>
+      <span>Create a client</span>
+
+      <div class="ui hidden divider"></div>
+
+      {{template "input.client-name" . }}
+      {{template "input.description" . }}
+
+      <button class="ui green button" type="submit"><i class="save icon"></i> Create Client</button>
+    </form>
+
+    </div>
+
+  </div>
+
+{{ template "dashboardend" . }}
+{{ template "htmlend" . }}
