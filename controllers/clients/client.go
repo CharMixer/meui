@@ -19,12 +19,15 @@ import (
 )
 
 type clientForm struct {
-  Name string
-  Description string
+  Name        string `form:"clientname"  binding:"required" validate:"required,notblank"`
+  Description string `form:"description" binding:"required" validate:"required,notblank"`
 }
 
 const ClientFieldsKey = "client.fields"
 const ClientErrorsKey = "client.errors"
+
+const ClientNameKey = "clientname"
+const ClientDescriptionKey = "description"
 
 func ShowClient(env *environment.State) gin.HandlerFunc {
   fn := func(c *gin.Context) {
@@ -49,10 +52,10 @@ func ShowClient(env *environment.State) gin.HandlerFunc {
     if len(rf) > 0 {
       fields := rf[0].(map[string][]string)
       for k, v := range fields {
-        if k == "description" && len(v) > 0 {
+        if k == ClientDescriptionKey && len(v) > 0 {
           description = strings.Join(v, ", ")
         }
-        if k == "client-name" && len(v) > 0 {
+        if k == ClientNameKey && len(v) > 0 {
           description = strings.Join(v, ", ")
         }
       }
@@ -71,11 +74,11 @@ func ShowClient(env *environment.State) gin.HandlerFunc {
       errorsMap := errors[0].(map[string][]string)
       for k, v := range errorsMap {
 
-        if k == "client-name" && len(v) > 0 {
+        if k == ClientNameKey && len(v) > 0 {
           errorClientName = strings.Join(v, ", ")
         }
 
-        if k == "description" && len(v) > 0 {
+        if k == ClientDescriptionKey && len(v) > 0 {
           errorDescription = strings.Join(v, ", ")
         }
 
@@ -88,8 +91,8 @@ func ShowClient(env *environment.State) gin.HandlerFunc {
         {"href": "/public/css/dashboard.css"},
       },
       csrf.TemplateTag: csrf.TemplateField(c.Request),
-      "client-name": clientName,
-      "description": description,
+      ClientNameKey: clientName,
+      ClientDescriptionKey: description,
       "errorClientName": errorClientName,
       "errorDesecription": errorDescription,
       "clientUrl": config.GetString("meui.public.url") + config.GetString("meui.public.endpoints.client"),
@@ -125,8 +128,8 @@ func SubmitClient(env *environment.State) gin.HandlerFunc {
 
     // Save values if submit fails
     fields := make(map[string][]string)
-    fields["client-name"] = append(fields["client-name"], form.Name)
-    fields["description"] = append(fields["description"], form.Description)
+    fields[ClientNameKey] = append(fields[ClientNameKey], form.Name)
+    fields[ClientDescriptionKey] = append(fields[ClientDescriptionKey], form.Description)
 
     session.AddFlash(fields, ClientFieldsKey)
     err = session.Save()
