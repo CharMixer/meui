@@ -1,7 +1,6 @@
 package resourceservers
 
 import (
-  "net/url"
   "net/http"
   "sort"
   "github.com/sirupsen/logrus"
