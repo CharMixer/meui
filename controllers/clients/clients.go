@@ -3,6 +3,7 @@ package clients
 import (
   "net/url"
   "net/http"
+  "sort"
   "github.com/sirupsen/logrus"
   "github.com/gin-gonic/gin"
   //"github.com/gin-contrib/sessions"
@@ -17,6 +18,9 @@ import (
 
 type ClientTemplate struct {
   Id string
+  Name string
+  Description string
+  ClientSecret string
   GrantsUrl string
 }
 
@@ -70,6 +74,9 @@ func ShowClients(env *environment.State) gin.HandlerFunc {
 
         uiClient := ClientTemplate{
           Id:        client.Id,
+          Name:      client.Name,
+          Description: client.Description,
+          ClientSecret: client.ClientSecret,
           GrantsUrl: grantsUrl.String(),
         }
         uiCreatedClients = append(uiCreatedClients, uiClient)
@@ -77,6 +84,10 @@ func ShowClients(env *environment.State) gin.HandlerFunc {
       }
 
     }
+
+    sort.Slice(uiCreatedClients, func(i, j int) bool {
+		  return uiCreatedClients[i].Name > uiCreatedClients[j].Name
+	  })
 
     c.HTML(http.StatusOK, "clients.html", gin.H{
       "title": "Clients",
