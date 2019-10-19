@@ -3,6 +3,7 @@ package resourceservers
 import (
   "net/http"
   "sort"
+  "fmt"
   "github.com/sirupsen/logrus"
   "github.com/gin-gonic/gin"
   //"github.com/gin-contrib/sessions"
@@ -48,8 +49,8 @@ func ShowResourceServers(env *environment.State) gin.HandlerFunc {
     }
 
     if status != 200 {
-      log.Debug(err.Error())
-      c.AbortWithStatus(http.StatusInternalServerError)
+      log.Debug(fmt.Sprintf("Failed to get OK response, got %d", status))
+      c.AbortWithStatus(http.StatusNotFound)
       return
     }
 
