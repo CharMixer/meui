@@ -28,6 +28,7 @@ import (
   "github.com/charmixer/meui/controllers/profiles"
   "github.com/charmixer/meui/controllers/invites"
   "github.com/charmixer/meui/controllers/clients"
+  "github.com/charmixer/meui/controllers/resourceservers"
   "github.com/charmixer/meui/controllers/access"
   "github.com/charmixer/meui/controllers/grant"
 )
@@ -208,6 +209,9 @@ func serve(env *environment.State) {
     ep.GET(  "/clients",      AuthorizationRequired(env, "openid"), clients.ShowClients(env) )
     ep.GET(  "/client",       AuthorizationRequired(env, "openid"), clients.ShowClient(env) )
     ep.POST( "/client",       AuthorizationRequired(env, "openid"), clients.SubmitClient(env) )
+
+    // Resource servers
+    ep.GET(  "/resourceservers",      AuthorizationRequired(env, "openid"), resourceservers.ShowResourceServers(env) )
 
     // Access
     ep.GET(  "/access",         AuthorizationRequired(env, "openid"), access.ShowAccess(env))
