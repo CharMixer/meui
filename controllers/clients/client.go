@@ -21,6 +21,7 @@ import (
 type clientForm struct {
   Name        string `form:"clientname"  binding:"required" validate:"required,notblank"`
   Description string `form:"description" binding:"required" validate:"required,notblank"`
+  IsPublic    []string `form:"is_public"`
 }
 
 const ClientFieldsKey = "client.fields"
@@ -28,6 +29,7 @@ const ClientErrorsKey = "client.errors"
 
 const ClientNameKey = "clientname"
 const ClientDescriptionKey = "description"
+const ClientIsPublicKey = "is_public"
 
 func ShowClient(env *environment.State) gin.HandlerFunc {
   fn := func(c *gin.Context) {
@@ -115,6 +117,11 @@ func SubmitClient(env *environment.State) gin.HandlerFunc {
       c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
       c.Abort()
       return
+    }
+
+    var isPublic bool = false
+    if len(form.IsPublic) > 0 {
+      isPublic = form.IsPublic[0] == "on"
     }
 
     identity := app.RequireIdentity(c)
@@ -205,6 +212,7 @@ func SubmitClient(env *environment.State) gin.HandlerFunc {
       {
         Name: form.Name,
         Description: form.Description,
+        IsPublic: isPublic,
       },
     })
     if err != nil {

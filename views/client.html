@@ -18,6 +18,13 @@
       {{template "input.clientname" . }}
       {{template "input.description" . }}
 
+      <div class="ui toggle checkbox">
+        <input type="checkbox" name="is_public">
+        <label><span data-tooltip="Client is for use in a system that is incapable of protecting a secret, hence it wont be generated">Client is public (Mobile App)</span></label>
+      </div>
+
+      <div class="ui hidden divider"></div>
+
       <button class="ui green button" type="submit"><i class="save icon"></i> Create Client</button>
     </form>
 
