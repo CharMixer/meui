@@ -1,4 +1,4 @@
-package clients
+package resourceservers
 
 import (
   "strings"
@@ -18,25 +18,23 @@ import (
   "github.com/charmixer/meui/validators"
 )
 
-type clientForm struct {
-  Name        string `form:"clientname"  binding:"required" validate:"required,notblank"`
+type resourceServerForm struct {
+  Name        string `form:"resourceservername"  binding:"required" validate:"required,notblank"`
   Description string `form:"description" binding:"required" validate:"required,notblank"`
-  IsPublic    []string `form:"is_public"`
 }
 
-const ClientFieldsKey = "client.fields"
-const ClientErrorsKey = "client.errors"
+const ResourceServerFieldsKey = "resourceserver.fields"
+const ResourceServerErrorsKey = "resourceserver.errors"
 
-const ClientNameKey = "clientname"
-const ClientDescriptionKey = "description"
-const ClientIsPublicKey = "is_public"
+const ResourceServerNameKey = "resourceservername"
+const ResourceServerDescriptionKey = "description"
 
-func ShowClient(env *environment.State) gin.HandlerFunc {
+func ShowResourceServer(env *environment.State) gin.HandlerFunc {
   fn := func(c *gin.Context) {
 
     log := c.MustGet(environment.LogKey).(*logrus.Entry)
     log = log.WithFields(logrus.Fields{
-      "func": "ShowClient",
+      "func": "ShowResourceServer",
     })
 
     identity := app.RequireIdentity(c)
@@ -48,80 +46,75 @@ func ShowClient(env *environment.State) gin.HandlerFunc {
 
     session := sessions.Default(c)
 
-    var clientName string
+    var resourceServerName string
     var description string
-    rf := session.Flashes(ClientFieldsKey)
+    rf := session.Flashes(ResourceServerFieldsKey)
     if len(rf) > 0 {
       fields := rf[0].(map[string][]string)
       for k, v := range fields {
-        if k == ClientDescriptionKey && len(v) > 0 {
+        if k == ResourceServerDescriptionKey && len(v) > 0 {
           description = strings.Join(v, ", ")
         }
-        if k == ClientNameKey && len(v) > 0 {
-          clientName = strings.Join(v, ", ")
+        if k == ResourceServerNameKey && len(v) > 0 {
+          resourceServerName = strings.Join(v, ", ")
         }
       }
     }
 
-    errors := session.Flashes(ClientErrorsKey)
+    errors := session.Flashes(ResourceServerErrorsKey)
     err := session.Save() // Remove flashes read, and save submit fields
     if err != nil {
       log.Debug(err.Error())
     }
 
-    var errorClientName string
+    var errorResourceServerName string
     var errorDescription string
 
     if len(errors) > 0 {
       errorsMap := errors[0].(map[string][]string)
       for k, v := range errorsMap {
 
-        if k == ClientNameKey && len(v) > 0 {
-          errorClientName = strings.Join(v, ", ")
+        if k == ResourceServerNameKey && len(v) > 0 {
+          errorResourceServerName = strings.Join(v, ", ")
         }
 
-        if k == ClientDescriptionKey && len(v) > 0 {
+        if k == ResourceServerDescriptionKey && len(v) > 0 {
           errorDescription = strings.Join(v, ", ")
         }
 
       }
     }
 
-    c.HTML(http.StatusOK, "client.html", gin.H{
-      "title": "Client",
+    c.HTML(http.StatusOK, "resourceserver.html", gin.H{
+      "title": "Resource Server",
       "links": []map[string]string{
         {"href": "/public/css/dashboard.css"},
       },
       csrf.TemplateTag: csrf.TemplateField(c.Request),
-      ClientNameKey: clientName,
-      ClientDescriptionKey: description,
-      "errorClientName": errorClientName,
+      ResourceServerNameKey: resourceServerName,
+      ResourceServerDescriptionKey: description,
+      "errorResourceServerName": errorResourceServerName,
       "errorDesecription": errorDescription,
-      "clientUrl": config.GetString("meui.public.url") + config.GetString("meui.public.endpoints.client"),
+      "resourceServerUrl": config.GetString("meui.public.url") + config.GetString("meui.public.endpoints.resourceserver"),
     })
   }
   return gin.HandlerFunc(fn)
 }
 
-func SubmitClient(env *environment.State) gin.HandlerFunc {
+func SubmitResourceServer(env *environment.State) gin.HandlerFunc {
   fn := func(c *gin.Context) {
 
     log := c.MustGet(environment.LogKey).(*logrus.Entry)
     log = log.WithFields(logrus.Fields{
-      "func": "SubmitClient",
+      "func": "SubmitResourceServer",
     })
 
-    var form clientForm
+    var form resourceServerForm
     err := c.Bind(&form)
     if err != nil {
       c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
       c.Abort()
       return
-    }
-
-    var isPublic bool = false
-    if len(form.IsPublic) > 0 {
-      isPublic = form.IsPublic[0] == "on"
     }
 
     identity := app.RequireIdentity(c)
@@ -135,10 +128,10 @@ func SubmitClient(env *environment.State) gin.HandlerFunc {
 
     // Save values if submit fails
     fields := make(map[string][]string)
-    fields[ClientNameKey] = append(fields[ClientNameKey], form.Name)
-    fields[ClientDescriptionKey] = append(fields[ClientDescriptionKey], form.Description)
+    fields[ResourceServerNameKey] = append(fields[ResourceServerNameKey], form.Name)
+    fields[ResourceServerDescriptionKey] = append(fields[ResourceServerDescriptionKey], form.Description)
 
-    session.AddFlash(fields, ClientFieldsKey)
+    session.AddFlash(fields, ResourceServerFieldsKey)
     err = session.Save()
     if err != nil {
       log.Debug(err.Error())
@@ -188,7 +181,7 @@ func SubmitClient(env *environment.State) gin.HandlerFunc {
     }
 
     if len(errors) > 0 {
-      session.AddFlash(errors, ClientErrorsKey)
+      session.AddFlash(errors, ResourceServerErrorsKey)
       err = session.Save()
       if err != nil {
         log.Debug(err.Error())
@@ -208,15 +201,15 @@ func SubmitClient(env *environment.State) gin.HandlerFunc {
 
     idpClient := app.IdpClientUsingAuthorizationCode(env, c)
 
-    status, _, err := idp.CreateClients(idpClient, config.GetString("idp.public.url") + config.GetString("idp.public.endpoints.clients.collection"), []idp.CreateClientsRequest{
+    status, _, err := idp.CreateResourceServers(idpClient, config.GetString("idp.public.url") + config.GetString("idp.public.endpoints.resourceservers.collection"), []idp.CreateResourceServersRequest{
       {
         Name: form.Name,
         Description: form.Description,
-        IsPublic: isPublic,
+        Audience: form.Name, // FIXME: This needs to be user input and properly handled for failure
       },
     })
     if err != nil {
-      log.Debug("Client create failed")
+      log.Debug("Resource server create failed")
       c.AbortWithStatus(http.StatusInternalServerError)
       return
     }
@@ -224,14 +217,14 @@ func SubmitClient(env *environment.State) gin.HandlerFunc {
     if status == 200 {
 
       // Cleanup session
-      session.Delete(ClientFieldsKey)
-      session.Delete(ClientErrorsKey)
+      session.Delete(ResourceServerFieldsKey)
+      session.Delete(ResourceServerErrorsKey)
       err = session.Save()
       if err != nil {
         log.Debug(err.Error())
       }
 
-      redirectTo := config.GetString("meui.public.url") + config.GetString("meui.public.endpoints.clients.collection")
+      redirectTo := config.GetString("meui.public.url") + config.GetString("meui.public.endpoints.resourceservers.collection")
       log.WithFields(logrus.Fields{"redirect_to": redirectTo}).Debug("Redirecting")
 
       c.Redirect(http.StatusFound, redirectTo)

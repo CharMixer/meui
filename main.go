@@ -212,6 +212,8 @@ func serve(env *environment.State) {
 
     // Resource servers
     ep.GET(  "/resourceservers",      AuthorizationRequired(env, "openid"), resourceservers.ShowResourceServers(env) )
+    ep.GET(  "/resourceserver",       AuthorizationRequired(env, "openid"), resourceservers.ShowResourceServer(env) )
+    ep.POST( "/resourceserver",       AuthorizationRequired(env, "openid"), resourceservers.SubmitResourceServer(env) )
 
     // Access
     ep.GET(  "/access",         AuthorizationRequired(env, "openid"), access.ShowAccess(env))

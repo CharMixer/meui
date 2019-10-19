@@ -215,6 +215,27 @@ $(function(){
 {{end}}
 {{ end }}
 
+{{ define "input.resourceservername" }}
+{{if .errorResourceServerName}}
+  <div class="required field {{if .errorResourceServerName}}error{{end}}">
+    <div class="ui right labeled left icon input focus">
+      <i class="server icon"></i>
+      <input type="text" name="resourceservername" placeholder="Name" value="{{.resourceServerName}}" required />
+      <div class="ui red tag label">
+        {{ .errorResourceServerName }}
+      </div>
+    </div>
+  </div>
+{{else}}
+  <div class="required field">
+    <div class="ui left icon input focus">
+      <i class="server icon"></i>
+      <input type="text" name="resourceservername" placeholder="Name" value="{{.resourceServerName}}" required />
+    </div>
+  </div>
+{{end}}
+{{ end }}
+
 {{ define "input.username" }}
 {{if .errorUsername}}
   <div class="required field {{if .errorUsername}}error{{end}}">
