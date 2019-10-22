@@ -2,6 +2,7 @@ package resourceservers
 
 import (
   "net/http"
+  "net/url"
   "sort"
   "fmt"
   "github.com/sirupsen/logrus"
@@ -21,7 +22,7 @@ type ResourceServerTemplate struct {
   Name string
   Description string
   Audience string
-  GrantsUrl string
+  DeleteUrl string
 }
 
 func ShowResourceServers(env *environment.State) gin.HandlerFunc {
@@ -54,6 +55,8 @@ func ShowResourceServers(env *environment.State) gin.HandlerFunc {
       return
     }
 
+    deleteResourceServersUrl := config.GetString("meui.public.url") + config.GetString("meui.public.endpoints.resourceservers.delete")
+
     var uiCreatedRs []ResourceServerTemplate
 
     var resourceservers idp.ReadResourceServersResponse
@@ -62,11 +65,23 @@ func ShowResourceServers(env *environment.State) gin.HandlerFunc {
 
       for _, rs := range resourceservers {
 
+        deleteUrl, err := url.Parse(deleteResourceServersUrl)
+        if err != nil {
+          log.WithFields(logrus.Fields{ "url":deleteResourceServersUrl }).Debug(err.Error())
+          c.AbortWithStatus(http.StatusInternalServerError)
+          return
+        }
+
+        q := deleteUrl.Query()
+        q.Add("id", rs.Id)
+        deleteUrl.RawQuery = q.Encode()
+
         uiClient := ResourceServerTemplate{
           Id:        rs.Id,
           Name:      rs.Name,
           Description: rs.Description,
           Audience: rs.Audience,
+          DeleteUrl: deleteUrl.String(),
         }
         uiCreatedRs = append(uiCreatedRs, uiClient)
 
