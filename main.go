@@ -211,9 +211,11 @@ func serve(env *environment.State) {
     ep.POST( "/client",       AuthorizationRequired(env, "openid"), clients.SubmitClient(env) )
 
     // Resource servers
-    ep.GET(  "/resourceservers",      AuthorizationRequired(env, "openid"), resourceservers.ShowResourceServers(env) )
-    ep.GET(  "/resourceserver",       AuthorizationRequired(env, "openid"), resourceservers.ShowResourceServer(env) )
-    ep.POST( "/resourceserver",       AuthorizationRequired(env, "openid"), resourceservers.SubmitResourceServer(env) )
+    ep.GET(  "/resourceservers",        AuthorizationRequired(env, "openid"), resourceservers.ShowResourceServers(env) )
+    ep.GET(  "/resourceservers/delete", AuthorizationRequired(env, "openid"), resourceservers.ShowResourceServerDelete(env) )
+    ep.POST( "/resourceservers/delete", AuthorizationRequired(env, "openid"), resourceservers.SubmitResourceServerDelete(env) )
+    ep.GET(  "/resourceserver",         AuthorizationRequired(env, "openid"), resourceservers.ShowResourceServer(env) )
+    ep.POST( "/resourceserver",         AuthorizationRequired(env, "openid"), resourceservers.SubmitResourceServer(env) )
 
     // Access
     ep.GET(  "/access",         AuthorizationRequired(env, "openid"), access.ShowAccess(env))
