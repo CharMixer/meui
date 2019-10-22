@@ -23,6 +23,7 @@ type ClientTemplate struct {
   Description string
   ClientSecret string
   GrantsUrl string
+  DeleteUrl string
 }
 
 func ShowClients(env *environment.State) gin.HandlerFunc {
@@ -55,6 +56,20 @@ func ShowClients(env *environment.State) gin.HandlerFunc {
       return
     }
 
+    grantsUrl, err := url.Parse(config.GetString("meui.public.url") + config.GetString("meui.public.endpoints.access.grant"))
+    if err != nil {
+      log.Debug(err.Error())
+      c.AbortWithStatus(http.StatusInternalServerError)
+      return
+    }
+
+    deleteUrl, err := url.Parse(config.GetString("meui.public.url") + config.GetString("meui.public.endpoints.clients.delete"))
+    if err != nil {
+      log.Debug(err.Error())
+      c.AbortWithStatus(http.StatusInternalServerError)
+      return
+    }
+
     var uiCreatedClients []ClientTemplate
 
     var clients idp.ReadClientsResponse
@@ -63,22 +78,23 @@ func ShowClients(env *environment.State) gin.HandlerFunc {
 
       for _, client := range clients {
 
-        grantsUrl, err := url.Parse(config.GetString("meui.public.url") + config.GetString("meui.public.endpoints.access.grant"))
-        if err != nil {
-          log.Debug(err.Error())
-          c.AbortWithStatus(http.StatusInternalServerError)
-          return
-        }
-        q := grantsUrl.Query()
+        _grantsUrl := grantsUrl
+        q := _grantsUrl.Query()
         q.Add("receiver", client.Id)
-        grantsUrl.RawQuery = q.Encode()
+        _grantsUrl.RawQuery = q.Encode()
+
+        _deleteUrl := deleteUrl
+        q = _deleteUrl.Query()
+        q.Add("id", client.Id)
+        _deleteUrl.RawQuery = q.Encode()
 
         uiClient := ClientTemplate{
           Id:        client.Id,
           Name:      client.Name,
           Description: client.Description,
           ClientSecret: client.ClientSecret,
-          GrantsUrl: grantsUrl.String(),
+          GrantsUrl: _grantsUrl.String(),
+          DeleteUrl: _deleteUrl.String(),
         }
         uiCreatedClients = append(uiCreatedClients, uiClient)
 
