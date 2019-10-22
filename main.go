@@ -206,9 +206,11 @@ func serve(env *environment.State) {
     ep.POST( "/invite",       AuthorizationRequired(env, "openid"), invites.SubmitInvite(env) )
 
     // Clients
-    ep.GET(  "/clients",      AuthorizationRequired(env, "openid"), clients.ShowClients(env) )
-    ep.GET(  "/client",       AuthorizationRequired(env, "openid"), clients.ShowClient(env) )
-    ep.POST( "/client",       AuthorizationRequired(env, "openid"), clients.SubmitClient(env) )
+    ep.GET(  "/clients",        AuthorizationRequired(env, "openid"), clients.ShowClients(env) )
+    ep.GET(  "/clients/delete", AuthorizationRequired(env, "openid"), clients.ShowClientDelete(env) )
+    ep.POST( "/clients/delete", AuthorizationRequired(env, "openid"), clients.SubmitClientDelete(env) )
+    ep.GET(  "/client",         AuthorizationRequired(env, "openid"), clients.ShowClient(env) )
+    ep.POST( "/client",         AuthorizationRequired(env, "openid"), clients.SubmitClient(env) )
 
     // Resource servers
     ep.GET(  "/resourceservers",        AuthorizationRequired(env, "openid"), resourceservers.ShowResourceServers(env) )

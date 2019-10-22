@@ -1,0 +1,39 @@
+{{ template "htmlbegin" . }}
+{{ template "dashboardbegin" . }}
+
+  <div class="ui segments">
+
+    <div class="ui segment">
+
+    <form class="ui form" action="{{ .submitUrl }}" method="post">
+      {{ .csrfField }}
+      <input type="hidden" name="id" value="{{ .id }}" />
+
+      <div class="ui teal ribbon label">
+        <i class="server icon"></i> Delete
+      </div>
+      <span>Delete a client</span>
+
+      <div class="ui hidden divider"></div>
+
+      <p>You are about to delete the resource server <span data-tooltip="{{.client.Description}}" class="ui blue label">{{ .client.Name }}</span> with <span class="ui blue label" data-tooltip="The identifier for the client in the system"><i class="key icon"></i> {{.client.Id}}</span></p>
+      <p>
+        You must accept the risk to delete the client.<br><br>
+        Beware this is a non recoverable action. Meaning we cannot restore the resource server once deleted.<br><br>
+        All information will be lost.<br><br>
+        Stay safe.
+      </p>
+
+      {{template "input.risk_accepted" . }}
+
+      <div class="ui hidden divider"></div>
+
+      <button class="ui red button" type="submit"><i class="power icon"></i> Delete Client</button>
+    </form>
+
+    </div>
+
+  </div>
+
+{{ template "dashboardend" . }}
+{{ template "htmlend" . }}

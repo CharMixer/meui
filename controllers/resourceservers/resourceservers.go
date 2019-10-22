@@ -55,7 +55,12 @@ func ShowResourceServers(env *environment.State) gin.HandlerFunc {
       return
     }
 
-    deleteResourceServersUrl := config.GetString("meui.public.url") + config.GetString("meui.public.endpoints.resourceservers.delete")
+    deleteUrl, err := url.Parse(config.GetString("meui.public.url") + config.GetString("meui.public.endpoints.resourceservers.delete"))
+    if err != nil {
+      log.Debug(err.Error())
+      c.AbortWithStatus(http.StatusInternalServerError)
+      return
+    }
 
     var uiCreatedRs []ResourceServerTemplate
 
@@ -65,23 +70,17 @@ func ShowResourceServers(env *environment.State) gin.HandlerFunc {
 
       for _, rs := range resourceservers {
 
-        deleteUrl, err := url.Parse(deleteResourceServersUrl)
-        if err != nil {
-          log.WithFields(logrus.Fields{ "url":deleteResourceServersUrl }).Debug(err.Error())
-          c.AbortWithStatus(http.StatusInternalServerError)
-          return
-        }
-
-        q := deleteUrl.Query()
+        _deleteUrl := deleteUrl
+        q := _deleteUrl.Query()
         q.Add("id", rs.Id)
-        deleteUrl.RawQuery = q.Encode()
+        _deleteUrl.RawQuery = q.Encode()
 
         uiClient := ResourceServerTemplate{
           Id:        rs.Id,
           Name:      rs.Name,
           Description: rs.Description,
           Audience: rs.Audience,
-          DeleteUrl: deleteUrl.String(),
+          DeleteUrl: _deleteUrl.String(),
         }
         uiCreatedRs = append(uiCreatedRs, uiClient)
 
