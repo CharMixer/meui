@@ -241,6 +241,7 @@ func SubmitGrants(env *environment.State) gin.HandlerFunc {
           Identity: receiver,
           Scope: grant.Scope,
           Publisher: publisher,
+          OnBehalfOf: publisher, // TODO FIXME this should be something you can choose from the gui (data scoped access rights)
         })
         continue;
       }
