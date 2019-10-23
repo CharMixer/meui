@@ -185,6 +185,8 @@ func serve(env *environment.State) {
     ep.GET("/callback", callbacks.ExchangeAuthorizationCodeCallback(env) )
 
     ep.GET("/profile", profiles.ShowPublicProfile(env) )
+
+    ep.GET("/seeyoulater", profiles.ShowSeeYouLater(env) )
   }
 
   // Endpoints that require Authentication and Authorization
@@ -197,6 +199,8 @@ func serve(env *environment.State) {
     ep.GET(  "/",             AuthorizationRequired(env, "openid"), profiles.ShowProfile(env) )
     ep.GET(  "/profile/edit", AuthorizationRequired(env, "openid"), profiles.ShowProfileEdit(env) )
     ep.POST( "/profile/edit", AuthorizationRequired(env, "openid"), profiles.SubmitProfileEdit(env) )
+
+    ep.GET(  "/logout", AuthorizationRequired(env, "openid"), profiles.ShowLogout(env) )
 
     // Invites
     ep.GET(  "/invites",      AuthorizationRequired(env, "openid"), invites.ShowInvites(env) )
@@ -226,9 +230,6 @@ func serve(env *environment.State) {
     ep.GET(  "/access/new",     AuthorizationRequired(env, "openid"), access.ShowAccessNew(env))
     ep.POST( "/access/new",     AuthorizationRequired(env, "openid"), access.SubmitAccessNew(env))
 
-    // Signoff
-    ep.GET(  "/logout",       AuthorizationRequired(env, "openid"), profiles.ShowLogout(env) )
-    ep.POST( "/logout",       AuthorizationRequired(env, "openid"), profiles.SubmitLogout(env) )
   }
 
   r.RunTLS(":" + config.GetString("serve.public.port"), config.GetString("serve.tls.cert.path"), config.GetString("serve.tls.key.path"))

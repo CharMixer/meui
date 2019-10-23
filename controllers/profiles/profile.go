@@ -39,6 +39,7 @@ func ShowProfile(env *environment.State) gin.HandlerFunc {
       "meUiUrl": config.GetString("meui.public.url"),
       "changePasswordUrl": config.GetString("idpui.public.url") + config.GetString("idpui.public.endpoints.password"),
       "setupTotpUrl": config.GetString("idpui.public.url") + config.GetString("idpui.public.endpoints.totp"),
+      "logoutUrl": config.GetString("meui.public.url") + config.GetString("meui.public.endpoints.logout"),
     })
     return
   }
