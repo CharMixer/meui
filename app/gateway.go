@@ -22,23 +22,18 @@ import (
 func LoadIdentity(env *environment.State) gin.HandlerFunc {
   fn := func(c *gin.Context) {
 
-    var idToken *oidc.IDToken
-
-    session := sessions.Default(c)
-    t := session.Get(environment.SessionIdTokenKey)
-    if t == nil {
-      c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Missing id_token in session"})
-      return
-    }
-
-    idToken = t.(*oidc.IDToken)
+    var idToken *oidc.IDToken = IdToken(c)
     if idToken == nil {
-      c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Missing id_token in session"})
+      c.AbortWithStatus(http.StatusUnauthorized)
       return
     }
 
-    var accessToken *oauth2.Token
-    accessToken = session.Get(environment.SessionTokenKey).(*oauth2.Token)
+    var accessToken *oauth2.Token = AccessToken(c)
+    if accessToken == nil {
+      c.AbortWithStatus(http.StatusForbidden)
+      return
+    }
+
     idpClient := idp.NewIdpClientWithUserAccessToken(env.HydraConfig, accessToken)
 
     // Look up profile information for user.
@@ -81,6 +76,33 @@ func RequireIdentity(c *gin.Context) *idp.Human {
     return &human
   }
   return nil
+}
+
+func AccessToken(c *gin.Context) (*oauth2.Token) {
+  session := sessions.Default(c)
+  t := session.Get(environment.SessionTokenKey)
+  if t != nil {
+    return t.(*oauth2.Token)
+  }
+  return nil
+}
+
+func IdToken(c *gin.Context) (*oidc.IDToken) {
+  session := sessions.Default(c)
+  t := session.Get(environment.SessionIdTokenKey)
+  if t != nil {
+    return  t.(*oidc.IDToken)
+  }
+  return nil
+}
+
+func IdTokenRaw(c *gin.Context) (string) {
+  session := sessions.Default(c)
+  t := session.Get(environment.SessionRawIdTokenKey)
+  if t != nil {
+    return t.(string)
+  }
+  return ""
 }
 
 func IdpClientUsingAuthorizationCode(env *environment.State, c *gin.Context) (*idp.IdpClient) {
@@ -145,6 +167,31 @@ func StartAuthenticationSession(env *environment.State, c *gin.Context, log *log
   authUrl := env.HydraConfig.AuthCodeURL(state)
   u, err := url.Parse(authUrl)
   return u, err
+}
+
+func StartLogout(idToken string, postLogoutRedirectUrl *url.URL) (redirectTo *url.URL, state string, err error) {
+
+  logoutUrl, err := url.Parse(config.GetString("hydra.public.url") + config.GetString("hydra.public.endpoints.logout"))
+  if err != nil {
+    return nil, "", err
+  }
+
+  state, err = CreateRandomStringWithNumberOfBytes(32);
+  if err != nil {
+    return nil, "", err
+  }
+
+  q := logoutUrl.Query()
+  q.Add("state", state)
+  q.Add("id_token_hint", idToken)
+
+  if postLogoutRedirectUrl != nil {
+    q.Add("post_logout_redirect_uri", postLogoutRedirectUrl.String()) // We must ensure that meui client has this uri whitelisted in post_logout_redirect_uris for the client in hydra
+  }
+
+  logoutUrl.RawQuery = q.Encode()
+
+  return logoutUrl, state, nil
 }
 
 func FetchInvite(idpClient *idp.IdpClient, id string) (*idp.Invite, error) {

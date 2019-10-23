@@ -2,22 +2,14 @@ package profiles
 
 import (
   "net/http"
+  "net/url"
   "github.com/sirupsen/logrus"
   "github.com/gin-gonic/gin"
-  "github.com/gorilla/csrf"
-  "github.com/gin-contrib/sessions"
-  idp "github.com/charmixer/idp/client"
 
   "github.com/charmixer/meui/app"
   "github.com/charmixer/meui/config"
   "github.com/charmixer/meui/environment"
-
-  bulky "github.com/charmixer/bulky/client"
 )
-
-type logoutForm struct {
-  Challenge string `form:"challenge" binding:"required"`
-}
 
 func ShowLogout(env *environment.State) gin.HandlerFunc {
   fn := func(c *gin.Context) {
@@ -27,135 +19,52 @@ func ShowLogout(env *environment.State) gin.HandlerFunc {
       "func": "ShowLogout",
     })
 
-    logoutChallenge := c.Query("logout_challenge")
-    if logoutChallenge == "" {
-      // No logout challenge ask hydra for one.
-      var redirectTo string = config.GetString("hydra.public.url") + config.GetString("hydra.public.endpoints.logout")
-      log.WithFields(logrus.Fields{"redirect_to": redirectTo}).Debug("Redirecting")
-      c.Redirect(http.StatusFound, redirectTo)
-      c.Abort()
+    identity := app.RequireIdentity(c)
+    if identity == nil {
+      log.Debug("Missing Identity")
+      c.AbortWithStatus(http.StatusForbidden)
       return
     }
 
-    c.HTML(http.StatusOK, "logout.html", gin.H{
-      "links": []map[string]string{
-        {"href": "/public/css/credentials.css"},
-      },
-      "title": "Logout",
-      csrf.TemplateTag: csrf.TemplateField(c.Request),
-      "provider": "Identity Provider",
-      "provideraction": "Logout of the system",
-      "challenge": logoutChallenge,
-      "logoutUrl": config.GetString("meui.public.endpoints.logout"),
-    })
-  }
-  return gin.HandlerFunc(fn)
-}
-
-
-
-func SubmitLogout(env *environment.State) gin.HandlerFunc {
-  fn := func(c *gin.Context) {
-
-    log := c.MustGet(environment.LogKey).(*logrus.Entry)
-    log = log.WithFields(logrus.Fields{
-      "func": "SubmitLogout",
-    })
-
-    var form logoutForm
-    err := c.Bind(&form)
-    if err != nil {
-      // Do better error handling in the application.
-      c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-      c.Abort()
+    urlLogout := config.GetString("hydra.public.url") + config.GetString("hydra.public.endpoints.logout")
+    if urlLogout == "" {
+      log.Debug("Missing config hydra.public.url + hydra.public.endpoints.logout")
+      c.AbortWithStatus(http.StatusInternalServerError)
       return
     }
-
-    idpClient := app.IdpClientUsingClientCredentials(env, c)
-
-    logoutRequest := []idp.CreateHumansLogoutRequest{ {Challenge: form.Challenge} }
-    _, logouts, err := idp.LogoutHumans(idpClient, config.GetString("idp.public.url") + config.GetString("idp.public.endpoints.humans.logout"), logoutRequest)
+    logoutUrl, err := url.Parse(urlLogout)
     if err != nil {
       log.Debug(err.Error())
       c.AbortWithStatus(http.StatusInternalServerError)
       return
     }
 
-    if logouts == nil {
-      log.Debug("Logout failed. Hint: Failed to execute CreateHumansLogoutRequest")
-      c.AbortWithStatus(http.StatusInternalServerError)
+    idToken := app.IdTokenRaw(c)
+    if idToken == "" {
+      log.Debug("Missing raw id_token")
+      c.AbortWithStatus(http.StatusUnauthorized)
       return
     }
 
-    var resp idp.CreateHumansLogoutResponse
-    status, _ := bulky.Unmarshal(0, logouts, &resp)
-    if status == 200 {
-
-      logout := resp
-
-      session := sessions.Default(c)
-      session.Clear()
-      err = session.Save()
-      if err != nil {
-        log.Debug(err.Error())
-        c.AbortWithStatus(http.StatusInternalServerError)
-        return
-      }
-
-      log.WithFields(logrus.Fields{"redirect_to": logout.RedirectTo}).Debug("Redirecting")
-      c.Redirect(http.StatusFound, logout.RedirectTo)
-      c.Abort()
-      return
-    }
-
-    // Deny by default
-    log.Debug("Unmarshal response failed")
-    c.AbortWithStatus(http.StatusInternalServerError)
-  }
-  return gin.HandlerFunc(fn)
-}
-
-func ShowLogoutSession(env *environment.State) gin.HandlerFunc {
-  fn := func(c *gin.Context) {
-
-    log := c.MustGet(environment.LogKey).(*logrus.Entry)
-    log = log.WithFields(logrus.Fields{
-      "func": "ShowLogoutSession",
-    })
-
-    c.HTML(200, "session-logout.html", gin.H{
-      "links": []map[string]string{
-        {"href": "/public/css/credentials.css"},
-      },
-      "title": "Session",
-      csrf.TemplateTag: csrf.TemplateField(c.Request),
-      "provider": "Identity Provider",
-      "provideraction": "Reset login session",
-      "sessionLogoutUrl": config.GetString("meui.public.endpoints.session.logout"),
-    })
-  }
-  return gin.HandlerFunc(fn)
-}
-
-func SubmitLogoutSession(env *environment.State) gin.HandlerFunc {
-  fn := func(c *gin.Context) {
-
-    log := c.MustGet(environment.LogKey).(*logrus.Entry)
-    log = log.WithFields(logrus.Fields{
-      "func": "SubmitLogoutSession",
-    })
-
-    session := sessions.Default(c)
-    session.Clear()
-    err := session.Save()
+    // Create session verifier
+    state, err := app.CreateRandomStringWithNumberOfBytes(32);
     if err != nil {
       log.Debug(err.Error())
       c.AbortWithStatus(http.StatusInternalServerError)
       return
     }
-    log.WithFields(logrus.Fields{"redirect_to": "/"}).Debug("Redirecting")
-    c.Redirect(http.StatusFound, "/")
+
+    q := logoutUrl.Query()
+    q.Add("state", state)
+    q.Add("id_token_hint", idToken)
+    q.Add("post_logout_redirect_uri", "https://me.localhost/seeyoulater")
+    logoutUrl.RawQuery = q.Encode()
+
+    redirectTo := logoutUrl.String()
+    log.WithFields(logrus.Fields{ "redirect_to":redirectTo }).Debug("Redirecting")
+    c.Redirect(http.StatusFound, redirectTo)
     c.Abort()
+    return
   }
   return gin.HandlerFunc(fn)
 }

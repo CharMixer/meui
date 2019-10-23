@@ -14,6 +14,7 @@ const (
   SessionStateKey string = "state"
   SessionTokenKey string = "token"
   SessionIdTokenKey string = "idtoken"
+  SessionRawIdTokenKey string = "idtokenraw"
   RequestIdKey string = "RequestId"
   AccessTokenKey string = "access_token"
   IdTokenKey string = "id_token"
