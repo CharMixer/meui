@@ -101,6 +101,7 @@ func ExchangeAuthorizationCodeCallback(env *environment.State) gin.HandlerFunc {
       }
 
       session := sessions.Default(c)
+      session.Clear()
       session.Set(environment.SessionTokenKey, token)
       session.Set(environment.SessionIdTokenKey, idToken)
       session.Set(environment.SessionRawIdTokenKey, rawIdToken)
