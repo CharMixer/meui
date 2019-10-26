@@ -193,42 +193,42 @@ func serve(env *environment.State) {
   ep = r.Group("/")
   ep.Use(adapterCSRF)
   ep.Use( AuthenticationRequired(env) )
-  ep.Use( app.LoadIdentity(env) )
+  ep.Use( app.RequireIdentity(env) )
   {
     // Profile
-    ep.GET(  "/",             AuthorizationRequired(env, "openid"), profiles.ShowProfile(env) )
-    ep.GET(  "/profile/edit", AuthorizationRequired(env, "openid"), profiles.ShowProfileEdit(env) )
-    ep.POST( "/profile/edit", AuthorizationRequired(env, "openid"), profiles.SubmitProfileEdit(env) )
+    ep.GET(  "/",             profiles.ShowProfile(env) )
+    ep.GET(  "/profile/edit", profiles.ShowProfileEdit(env) )
+    ep.POST( "/profile/edit", profiles.SubmitProfileEdit(env) )
 
-    ep.GET(  "/logout", AuthorizationRequired(env, "openid"), profiles.ShowLogout(env) )
+    ep.GET(  "/logout", profiles.ShowLogout(env) )
 
     // Invites
-    ep.GET(  "/invites",      AuthorizationRequired(env, "openid"), invites.ShowInvites(env) )
-    ep.GET(  "/invites/send", AuthorizationRequired(env, "openid"), invites.ShowInvitesSend(env) )
-    ep.POST( "/invites/send", AuthorizationRequired(env, "openid"), invites.SubmitInvitesSend(env) )
-    ep.GET(  "/invite",       AuthorizationRequired(env, "openid"), invites.ShowInvite(env) )
-    ep.POST( "/invite",       AuthorizationRequired(env, "openid"), invites.SubmitInvite(env) )
+    ep.GET(  "/invites",      invites.ShowInvites(env) )
+    ep.GET(  "/invites/send", invites.ShowInvitesSend(env) )
+    ep.POST( "/invites/send", invites.SubmitInvitesSend(env) )
+    ep.GET(  "/invite",       invites.ShowInvite(env) )
+    ep.POST( "/invite",       invites.SubmitInvite(env) )
 
     // Clients
-    ep.GET(  "/clients",        AuthorizationRequired(env, "openid"), clients.ShowClients(env) )
-    ep.GET(  "/clients/delete", AuthorizationRequired(env, "openid"), clients.ShowClientDelete(env) )
-    ep.POST( "/clients/delete", AuthorizationRequired(env, "openid"), clients.SubmitClientDelete(env) )
-    ep.GET(  "/client",         AuthorizationRequired(env, "openid"), clients.ShowClient(env) )
-    ep.POST( "/client",         AuthorizationRequired(env, "openid"), clients.SubmitClient(env) )
+    ep.GET(  "/clients",        clients.ShowClients(env) )
+    ep.GET(  "/clients/delete", clients.ShowClientDelete(env) )
+    ep.POST( "/clients/delete", clients.SubmitClientDelete(env) )
+    ep.GET(  "/client",         clients.ShowClient(env) )
+    ep.POST( "/client",         clients.SubmitClient(env) )
 
     // Resource servers
-    ep.GET(  "/resourceservers",        AuthorizationRequired(env, "openid"), resourceservers.ShowResourceServers(env) )
-    ep.GET(  "/resourceservers/delete", AuthorizationRequired(env, "openid"), resourceservers.ShowResourceServerDelete(env) )
-    ep.POST( "/resourceservers/delete", AuthorizationRequired(env, "openid"), resourceservers.SubmitResourceServerDelete(env) )
-    ep.GET(  "/resourceserver",         AuthorizationRequired(env, "openid"), resourceservers.ShowResourceServer(env) )
-    ep.POST( "/resourceserver",         AuthorizationRequired(env, "openid"), resourceservers.SubmitResourceServer(env) )
+    ep.GET(  "/resourceservers",        resourceservers.ShowResourceServers(env) )
+    ep.GET(  "/resourceservers/delete", resourceservers.ShowResourceServerDelete(env) )
+    ep.POST( "/resourceservers/delete", resourceservers.SubmitResourceServerDelete(env) )
+    ep.GET(  "/resourceserver",         resourceservers.ShowResourceServer(env) )
+    ep.POST( "/resourceserver",         resourceservers.SubmitResourceServer(env) )
 
     // Access
-    ep.GET(  "/access",         AuthorizationRequired(env, "openid"), access.ShowAccess(env))
-    ep.GET(  "/access/grant",   AuthorizationRequired(env, "openid"), grant.ShowGrants(env))
-    ep.POST( "/access/grant",   AuthorizationRequired(env, "openid"), grant.SubmitGrants(env))
-    ep.GET(  "/access/new",     AuthorizationRequired(env, "openid"), access.ShowAccessNew(env))
-    ep.POST( "/access/new",     AuthorizationRequired(env, "openid"), access.SubmitAccessNew(env))
+    ep.GET(  "/access",         access.ShowAccess(env))
+    ep.GET(  "/access/grant",   grant.ShowGrants(env))
+    ep.POST( "/access/grant",   grant.SubmitGrants(env))
+    ep.GET(  "/access/new",     access.ShowAccessNew(env))
+    ep.POST( "/access/new",     access.SubmitAccessNew(env))
 
   }
 
@@ -393,7 +393,7 @@ func AuthenticationRequired(env *environment.State) gin.HandlerFunc {
   return gin.HandlerFunc(fn)
 }
 
-func AuthorizationRequired(env *environment.State, requiredScopes ...string) gin.HandlerFunc {
+/*func AuthorizationRequired(env *environment.State, requiredScopes ...string) gin.HandlerFunc {
   fn := func(c *gin.Context) {
     log := c.MustGet(environment.LogKey).(*logrus.Entry)
     log = log.WithFields(logrus.Fields{
@@ -403,22 +403,43 @@ func AuthorizationRequired(env *environment.State, requiredScopes ...string) gin
     strRequiredScopes := strings.Join(requiredScopes, " ")
     log.WithFields(logrus.Fields{"scope": strRequiredScopes}).Debug("Required Scopes");
 
-    var grantedScopes []string = requiredScopes
+    aapClient := app.AapClientUsingClientCredentials(env, c)
 
-    // See #3 of QTNA
-    log.WithFields(logrus.Fields{"fixme": 1, "qtna": 3}).Debug("Missing check if access token is granted the required scopes")
-
-    // See #4 of QTNA
-    log.WithFields(logrus.Fields{"fixme": 1, "qtna": 4}).Debug("Missing check if the user or client giving the grants in the access token  isauthorized to operate the granted scopes")
-
-    if len(grantedScopes) == len(requiredScopes) {
-
-      strGrantedScopes := strings.Join(grantedScopes, " ")
-      log.WithFields(logrus.Fields{"scope": strGrantedScopes}).Debug("Granted Scopes");
-
-      log.Debug("Authorized")
-      c.Next()
+    judgeRequest := []aap.ReadEntitiesJudgeRequest{ {
+      Publisher: "a73b547b-f26d-487b-9e3a-2574fe3403fe", // Resource Server. For IdpUI this is IDP, FIXME: We should be able to specify audience instead of id (as thirdparty might not know id)
+      Owners: []string{config.GetString("oauth2.client.id")}, // meui client
+      Scopes: requiredScopes,
+    }}
+    status, responses, err := aap.ReadEntitiesJudge(aapClient, config.GetString("aap.public.url") + config.GetString("aap.public.endpoints.entities.judge"), judgeRequest)
+    if err != nil {
+      log.Debug(err.Error())
+      c.AbortWithStatus(http.StatusInternalServerError)
       return
+    }
+
+    if status == 200 {
+
+      // QTNA answered by app judge endpoint
+      // #3 - Access token granted required scopes? (hydra token introspect)
+      // #4 - User or client in access token authorized to execute the granted scopes?
+      var verdict aap.ReadEntitiesJudgeResponse
+      status, restErr := bulky.Unmarshal(0, responses, &verdict)
+      if restErr != nil {
+        log.Debug("Unmarshal failed")
+        c.AbortWithStatus(http.StatusInternalServerError)
+        return
+      }
+
+      if status == 200 {
+
+        if verdict.Granted == true {
+          log.Debug("Authorized")
+          c.Next()
+          return
+        }
+
+      }
+
     }
 
     // Deny by Default
@@ -427,7 +448,7 @@ func AuthorizationRequired(env *environment.State, requiredScopes ...string) gin
     return
   }
   return gin.HandlerFunc(fn)
-}
+}*/
 
 func authenticateWithBearer(req *http.Request) (*oauth2.Token) {
   auth := req.Header.Get("Authorization")

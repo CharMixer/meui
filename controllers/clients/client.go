@@ -39,7 +39,7 @@ func ShowClient(env *environment.State) gin.HandlerFunc {
       "func": "ShowClient",
     })
 
-    identity := app.RequireIdentity(c)
+    identity := app.GetIdentity(c)
     if identity == nil {
       log.Debug("Missing Identity")
       c.AbortWithStatus(http.StatusForbidden)
@@ -124,7 +124,7 @@ func SubmitClient(env *environment.State) gin.HandlerFunc {
       isPublic = form.IsPublic[0] == "on"
     }
 
-    identity := app.RequireIdentity(c)
+    identity := app.GetIdentity(c)
     if identity == nil {
       log.Debug("Missing Identity")
       c.AbortWithStatus(http.StatusForbidden)

@@ -27,7 +27,7 @@ func ShowInvitesSend(env *environment.State) gin.HandlerFunc {
       "func": "ShowInvitesSend",
     })
 
-    identity := app.RequireIdentity(c)
+    identity := app.GetIdentity(c)
     if identity == nil {
       log.Debug("Missing Identity")
       c.AbortWithStatus(http.StatusForbidden)
@@ -93,7 +93,7 @@ func SubmitInvitesSend(env *environment.State) gin.HandlerFunc {
       return
     }
 
-    identity := app.RequireIdentity(c)
+    identity := app.GetIdentity(c)
     if identity == nil {
       log.Debug("Missing Identity")
       c.AbortWithStatus(http.StatusForbidden)
