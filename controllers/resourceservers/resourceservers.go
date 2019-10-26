@@ -33,7 +33,7 @@ func ShowResourceServers(env *environment.State) gin.HandlerFunc {
       "func": "ShowResourceServers",
     })
 
-    identity := app.RequireIdentity(c)
+    identity := app.GetIdentity(c)
     if identity == nil {
       log.Debug("Missing Identity")
       c.AbortWithStatus(http.StatusForbidden)

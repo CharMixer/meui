@@ -19,7 +19,7 @@ func ShowLogout(env *environment.State) gin.HandlerFunc {
       "func": "ShowLogout",
     })
 
-    identity := app.RequireIdentity(c)
+    identity := app.GetIdentity(c)
     if identity == nil {
       log.Debug("Missing Identity")
       c.AbortWithStatus(http.StatusForbidden)

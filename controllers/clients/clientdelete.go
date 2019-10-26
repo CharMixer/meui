@@ -33,7 +33,7 @@ func ShowClientDelete(env *environment.State) gin.HandlerFunc {
       "func": "ShowClientDelete",
     })
 
-    identity := app.RequireIdentity(c)
+    identity := app.GetIdentity(c)
     if identity == nil {
       log.Debug("Missing Identity")
       c.AbortWithStatus(http.StatusForbidden)
@@ -137,7 +137,7 @@ func SubmitClientDelete(env *environment.State) gin.HandlerFunc {
       return
     }
 
-    identity := app.RequireIdentity(c)
+    identity := app.GetIdentity(c)
     if identity == nil {
       log.Debug("Missing Identity")
       c.AbortWithStatus(http.StatusForbidden)
