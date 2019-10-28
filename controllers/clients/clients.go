@@ -21,7 +21,7 @@ type ClientTemplate struct {
   Id string
   Name string
   Description string
-  ClientSecret string
+  Secret string
   GrantsUrl string
   DeleteUrl string
 }
@@ -92,7 +92,7 @@ func ShowClients(env *environment.State) gin.HandlerFunc {
           Id:        client.Id,
           Name:      client.Name,
           Description: client.Description,
-          ClientSecret: client.ClientSecret,
+          Secret: client.Secret,
           GrantsUrl: _grantsUrl.String(),
           DeleteUrl: _deleteUrl.String(),
         }
