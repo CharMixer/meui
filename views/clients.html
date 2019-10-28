@@ -55,7 +55,7 @@
 
   $(function(){
     $(".reveal").on("click", function(){
-      let cs = $(".client-secret")
+      let cs = $(this).closest(".content").find(".client-secret")
       cs.html(cs.data('secret'));
 
       $(this).remove()
