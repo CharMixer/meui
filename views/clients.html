@@ -23,11 +23,12 @@
             </div>
           </div>
 
-          {{ if $client.ClientSecret }}
+          {{ if $client.Secret }}
           <div class="item">
             <i class="user secret icon"></i>
             <div class="content">
-              <span data-tooltip="The client secret for your app">{{ $client.ClientSecret }}</span>
+              <span style="word-break: break-all;display:inline-block;" class="client-secret" data-tooltip="The client secret for your app" data-secret="{{ $client.Secret }}">**********</span>
+              <a href="javascript:void(0);" data-tooltip="Reveal secret" class="reveal"><i class="eye icon"></i></a>
             </div>
           </div>
           {{ end }}
@@ -49,6 +50,19 @@
     {{ end }}
 
   </div>
+
+<script>
+
+  $(function(){
+    $(".reveal").on("click", function(){
+      let cs = $(this).closest(".content").find(".client-secret")
+      cs.html(cs.data('secret'));
+
+      $(this).remove()
+    });
+  });
+
+</script>
 
 {{ template "dashboardend" . }}
 {{ template "htmlend" . }}
