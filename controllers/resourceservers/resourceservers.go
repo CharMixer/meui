@@ -22,6 +22,7 @@ type ResourceServerTemplate struct {
   Name string
   Description string
   Audience string
+  PublishingsUrl string
   DeleteUrl string
 }
 
@@ -62,6 +63,13 @@ func ShowResourceServers(env *environment.State) gin.HandlerFunc {
       return
     }
 
+    publishingsUrl, err := url.Parse(config.GetString("meui.public.url") + config.GetString("meui.public.endpoints.publishings.collection"))
+    if err != nil {
+      log.Debug(err.Error())
+      c.AbortWithStatus(http.StatusInternalServerError)
+      return
+    }
+
     var uiCreatedRs []ResourceServerTemplate
 
     var resourceservers idp.ReadResourceServersResponse
@@ -75,12 +83,18 @@ func ShowResourceServers(env *environment.State) gin.HandlerFunc {
         q.Add("id", rs.Id)
         _deleteUrl.RawQuery = q.Encode()
 
+        _publishingsUrl := publishingsUrl
+        q = _publishingsUrl.Query()
+        q.Add("receiver", rs.Id)
+        _publishingsUrl.RawQuery = q.Encode()
+
         uiClient := ResourceServerTemplate{
           Id:        rs.Id,
           Name:      rs.Name,
           Description: rs.Description,
           Audience: rs.Audience,
           DeleteUrl: _deleteUrl.String(),
+          PublishingsUrl: _publishingsUrl.String(),
         }
         uiCreatedRs = append(uiCreatedRs, uiClient)
 
@@ -89,8 +103,8 @@ func ShowResourceServers(env *environment.State) gin.HandlerFunc {
     }
 
     sort.Slice(uiCreatedRs, func(i, j int) bool {
-		  return uiCreatedRs[i].Name > uiCreatedRs[j].Name
-	  })
+      return uiCreatedRs[i].Name > uiCreatedRs[j].Name
+    })
 
     c.HTML(http.StatusOK, "resourceservers.html", gin.H{
       "title": "Resource Servers",

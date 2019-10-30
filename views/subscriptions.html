@@ -1,0 +1,139 @@
+{{ $publisher := .publisher }}
+{{ $receiver := .receiver }}
+{{ $hasGrantsMap := .hasGrantsMap }}
+
+{{ template "htmlbegin" . }}
+{{ template "dashboardbegin" . }}
+
+  <form class="ui form" method="get" action="/subscriptions">
+    <input type="hidden" name="receiver" value="{{ $receiver }}" />
+    <div class="field">
+      <label>Resource server</label>
+      <div class="ui selection dropdown">
+        <input type="hidden" name="publisher" value="{{ $publisher }}">
+        <i class="dropdown icon"></i>
+        <div class="default text">Resource server</div>
+        <div class="menu">
+          {{ range $key, $rs := .resourceservers }}
+          <div class="item" data-value="{{ $rs.Id }}">{{ $rs.Name }}</div>
+          {{ end }}
+        </div>
+      </div>
+    </div>
+  </form>
+
+{{ if .publisher }}
+
+  <div class="ui segment">
+    {{ if .grantPublishes }}
+    <form class="ui form" method="post" action="/subscriptions?receiver={{ $receiver }}&publisher={{ $publisher }}">
+      {{ .csrfField }}
+
+      <div class="fields" style="padding: 0 30%">
+        <button class="ui fluid positive button">Give grants</button>
+      </div>
+
+      <h4 class="ui horizontal divider header">
+        Grants
+      </h4>
+
+      {{ range $key, $publish := .grantPublishes }}
+        <input type="hidden" name="Grants[{{ $key }}].Scope" value="{{ $publish.Scope }}" />
+        <a class="ui blue ribbon label" style="margin-bottom:10px">{{ $publish.Scope }}</a> {{ $publish.Title }}
+
+        <div class="three fields">
+          <div class="field">
+            <label>Enable</label>
+            <div class="ui toggle checkbox">
+              <input type="checkbox" {{ if index $hasGrantsMap $publish.Scope }} checked {{ end }} class="enable" name="Grants[{{ $key }}].Enabled" tabindex="0">
+            </div>
+          </div>
+          <div class="field">
+            <label>Start date</label>
+            <input type="date" class="startdate" name="Grants[{{ $key }}].StartDate" placeholder="From">
+          </div>
+          <div class="field">
+            <label>End date</label>
+            <input type="date" class="enddate" name="Grants[{{ $key }}].EndDate" placeholder="To">
+          </div>
+        </div>
+        <div class="ui divider"></div>
+      {{ end }}
+
+    </form>
+    {{ else }}
+      <div class="ui icon message">
+        <i class="frown outline icon"></i>
+        <div class="content">
+          <p>Sorry, the given resource server does not publish anything that you can subscribe to</p>
+        </div>
+      </div>
+    {{ end }}
+  </div>
+
+  {{if .errors }}
+    {{ range $key, $error := .errors }}
+    <p>{{ $error.Error }}</p>
+    {{ end }}
+  {{ end }}
+
+{{ end }}
+
+{{ template "dashboardend" . }}
+
+<script type="text/javascript">
+  $(function(){
+
+    $('.ui.sticky')
+      .sticky({
+        context: '.segment',
+      })
+    ;
+
+    $("input[name=publisher]").on('change', function(){
+      $(this).closest("form").submit();
+    });
+
+    $('.selection.dropdown').dropdown();
+    $('.ui.checkbox').checkbox();
+    $('.tabs.menu .item').tab().on('click', function(){
+      localStorage.setItem('prev_tab', $(this).data('tab'));
+    }).each(function(i,e){
+      let prevTab = localStorage.getItem('prev_tab');
+
+      if ( !prevTab ) {
+        return
+      }
+
+      $(e).removeClass('active')
+      if ( $(e).data('tab') === prevTab ) {
+        $(e).tab('change tab', prevTab)
+      }
+    });
+
+    $("input.startdate").each(function(i,e) {
+      let isoDate = new Date().toISOString().substring(0,10)
+      $(e).val(isoDate);
+      $(e).prop("min", isoDate);
+    });
+
+    $("input.enable").each(function(i,e) {
+      toggleDatepickers($(this));
+    });
+
+    $("input.enable").on('change', function(){
+      toggleDatepickers($(this));
+    });
+
+    function toggleDatepickers(e) {
+     if ( e.is(":checked") ) {
+        e.closest(".fields").find("input[type=date]").prop("disabled", false);
+        return;
+      }
+
+      e.closest(".fields").find("input[type=date]").prop("disabled", true);
+    }
+  });
+</script>
+
+{{ template "htmlend" . }}

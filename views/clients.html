@@ -1,7 +1,7 @@
 {{ template "htmlbegin" . }}
 {{ template "dashboardbegin" . }}
 
-  <a href="/client" style="margin-top:5px" class="ui green label"><i class="dragon icon"></i> Create Client</a>
+  <a href="/client" style="margin-top:5px" class="ui green label"><i class="code icon"></i> Create Client</a>
 
   <div class="ui segments">
 
@@ -11,7 +11,7 @@
       {{range $client := .created}}
 
         <div class="ui teal ribbon label">
-          <i class="dragon icon"></i> {{ $client.Name }}
+          <i class="code icon"></i> {{ $client.Name }}
         </div>
         <span> {{$client.Description}} </span>
 
@@ -34,6 +34,7 @@
           {{ end }}
 
           <a href="{{ $client.GrantsUrl }}" style="margin-top:5px" class="ui green label"><i class="user lock icon"></i> Grants</a>
+          <a href="{{ $client.SubscriptionsUrl }}" style="margin-top:5px" class="ui blue label"><i class="handshake icon"></i> Subscriptions</a>
           <a href="{{ $client.DeleteUrl }}" style="margin-top:5px" class="ui red label"><i class="power icon"></i> Delete Client</a>
 
         </div>

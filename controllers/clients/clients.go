@@ -23,6 +23,7 @@ type ClientTemplate struct {
   Description string
   Secret string
   GrantsUrl string
+  SubscriptionsUrl string
   DeleteUrl string
 }
 
@@ -63,6 +64,13 @@ func ShowClients(env *environment.State) gin.HandlerFunc {
       return
     }
 
+    subscriptionsUrl, err := url.Parse(config.GetString("meui.public.url") + config.GetString("meui.public.endpoints.subscriptions.collection"))
+    if err != nil {
+      log.Debug(err.Error())
+      c.AbortWithStatus(http.StatusInternalServerError)
+      return
+    }
+
     deleteUrl, err := url.Parse(config.GetString("meui.public.url") + config.GetString("meui.public.endpoints.clients.delete"))
     if err != nil {
       log.Debug(err.Error())
@@ -83,6 +91,11 @@ func ShowClients(env *environment.State) gin.HandlerFunc {
         q.Add("receiver", client.Id)
         _grantsUrl.RawQuery = q.Encode()
 
+        _subscriptionsUrl := subscriptionsUrl
+        q = _subscriptionsUrl.Query()
+        q.Add("receiver", client.Id)
+        _subscriptionsUrl.RawQuery = q.Encode()
+
         _deleteUrl := deleteUrl
         q = _deleteUrl.Query()
         q.Add("id", client.Id)
@@ -94,6 +107,7 @@ func ShowClients(env *environment.State) gin.HandlerFunc {
           Description: client.Description,
           Secret: client.Secret,
           GrantsUrl: _grantsUrl.String(),
+          SubscriptionsUrl: _subscriptionsUrl.String(),
           DeleteUrl: _deleteUrl.String(),
         }
         uiCreatedClients = append(uiCreatedClients, uiClient)
@@ -103,8 +117,8 @@ func ShowClients(env *environment.State) gin.HandlerFunc {
     }
 
     sort.Slice(uiCreatedClients, func(i, j int) bool {
-		  return uiCreatedClients[i].Name > uiCreatedClients[j].Name
-	  })
+      return uiCreatedClients[i].Name > uiCreatedClients[j].Name
+    })
 
     c.HTML(http.StatusOK, "clients.html", gin.H{
       "title": "Clients",
