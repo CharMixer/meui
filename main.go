@@ -31,6 +31,8 @@ import (
   "github.com/charmixer/meui/controllers/resourceservers"
   "github.com/charmixer/meui/controllers/access"
   "github.com/charmixer/meui/controllers/grant"
+  "github.com/charmixer/meui/controllers/subscriptions"
+  "github.com/charmixer/meui/controllers/publishings"
 )
 
 const appName = "meui"
@@ -196,39 +198,49 @@ func serve(env *environment.State) {
   ep.Use( app.RequireIdentity(env) )
   {
     // Profile
-    ep.GET(  "/",             profiles.ShowProfile(env) )
-    ep.GET(  "/profile/edit", profiles.ShowProfileEdit(env) )
-    ep.POST( "/profile/edit", profiles.SubmitProfileEdit(env) )
+    ep.GET(  "/",                       profiles.ShowProfile(env))
+    ep.GET(  "/profile/edit",           profiles.ShowProfileEdit(env))
+    ep.POST( "/profile/edit",           profiles.SubmitProfileEdit(env))
 
-    ep.GET(  "/logout", profiles.ShowLogout(env) )
+    ep.GET(  "/logout",                 profiles.ShowLogout(env))
 
     // Invites
-    ep.GET(  "/invites",      invites.ShowInvites(env) )
-    ep.GET(  "/invites/send", invites.ShowInvitesSend(env) )
-    ep.POST( "/invites/send", invites.SubmitInvitesSend(env) )
-    ep.GET(  "/invite",       invites.ShowInvite(env) )
-    ep.POST( "/invite",       invites.SubmitInvite(env) )
+    ep.GET(  "/invites",                invites.ShowInvites(env))
+    ep.GET(  "/invites/send",           invites.ShowInvitesSend(env))
+    ep.POST( "/invites/send",           invites.SubmitInvitesSend(env))
+    ep.GET(  "/invite",                 invites.ShowInvite(env))
+    ep.POST( "/invite",                 invites.SubmitInvite(env))
 
     // Clients
-    ep.GET(  "/clients",        clients.ShowClients(env) )
-    ep.GET(  "/clients/delete", clients.ShowClientDelete(env) )
-    ep.POST( "/clients/delete", clients.SubmitClientDelete(env) )
-    ep.GET(  "/client",         clients.ShowClient(env) )
-    ep.POST( "/client",         clients.SubmitClient(env) )
+    ep.GET(  "/clients",                clients.ShowClients(env))
+    ep.GET(  "/clients/delete",         clients.ShowClientDelete(env))
+    ep.POST( "/clients/delete",         clients.SubmitClientDelete(env))
+    ep.GET(  "/client",                 clients.ShowClient(env))
+    ep.POST( "/client",                 clients.SubmitClient(env))
 
     // Resource servers
-    ep.GET(  "/resourceservers",        resourceservers.ShowResourceServers(env) )
-    ep.GET(  "/resourceservers/delete", resourceservers.ShowResourceServerDelete(env) )
-    ep.POST( "/resourceservers/delete", resourceservers.SubmitResourceServerDelete(env) )
-    ep.GET(  "/resourceserver",         resourceservers.ShowResourceServer(env) )
-    ep.POST( "/resourceserver",         resourceservers.SubmitResourceServer(env) )
+    ep.GET(  "/resourceservers",        resourceservers.ShowResourceServers(env))
+    ep.GET(  "/resourceservers/delete", resourceservers.ShowResourceServerDelete(env))
+    ep.POST( "/resourceservers/delete", resourceservers.SubmitResourceServerDelete(env))
+    ep.GET(  "/resourceserver",         resourceservers.ShowResourceServer(env))
+    ep.POST( "/resourceserver",         resourceservers.SubmitResourceServer(env))
 
     // Access
-    ep.GET(  "/access",         access.ShowAccess(env))
-    ep.GET(  "/access/grant",   grant.ShowGrants(env))
-    ep.POST( "/access/grant",   grant.SubmitGrants(env))
-    ep.GET(  "/access/new",     access.ShowAccessNew(env))
-    ep.POST( "/access/new",     access.SubmitAccessNew(env))
+    ep.GET(  "/access",                 access.ShowAccess(env))
+    ep.GET(  "/access/grant",           grant.ShowGrants(env))
+    ep.POST( "/access/grant",           grant.SubmitGrants(env))
+    ep.GET(  "/access/new",             access.ShowAccessNew(env))
+    ep.POST( "/access/new",             access.SubmitAccessNew(env))
+
+    // Subscriptions
+    ep.GET(  "/subscriptions",          subscriptions.ShowSubscriptions(env))
+    ep.POST( "/subscriptions",          subscriptions.SubmitSubscriptions(env))
+
+    // Publishings
+    ep.GET(  "/publishings",            publishings.ShowPublishings(env))
+    ep.POST( "/publishings",            publishings.SubmitPublishings(env))
+    ep.GET(  "/publishings/publish",    publishings.ShowPublish(env))
+    ep.POST( "/publishings/publish",    publishings.SubmitPublish(env))
 
   }
 
