@@ -1,37 +1,28 @@
-{{ $publisher := .publisher }}
 {{ $receiver := .receiver }}
-{{ $hasGrantsMap := .hasGrantsMap }}
 
 {{ template "htmlbegin" . }}
 {{ template "dashboardbegin" . }}
 
   <div class="ui tab segment active" data-tab="g">
-    <form class="ui form" method="post" action="/publishings/publish?receiver={{ $receiver }}&publisher={{ $publisher }}">
+    <form class="ui form" method="post" action="/publishings/publish?receiver={{ $receiver }}">
       {{ .csrfField }}
 
       <div class="field">
         <label>Scope</label>
-        <div class="ui fluid search selection dropdown">
-          <input type="hidden" name="country">
-          <div class="default text">Select Scope</div>
-          <i class="dropdown icon"></i>
-          <div class="menu">
-            <div class="item" data-value="um">Us Minor Islands</div>
-            <div class="item" data-value="uz">Uzbekistan</div>
-            <div class="item" data-value="zw">Zimbabwe</div>
-          </div>
-        </div>
+        <input type="text" name="Scope" placeholder="Scope">
       </div>
 
       <div class="field">
         <label>Title</label>
-        <input type="text" name="title" placeholder="Title">
+        <input type="text" name="Title" placeholder="Title">
       </div>
 
       <div class="field">
         <label>Description</label>
-        <textarea placeholder="Description"></textarea>
+        <textarea placeholder="Description" name="Description"></textarea>
       </div>
+
+       <input type="submit" class="ui button orange" tabindex="0" value="Publish" />
 
     </form>
   </div>

@@ -238,7 +238,6 @@ func serve(env *environment.State) {
 
     // Publishings
     ep.GET(  "/publishings",            publishings.ShowPublishings(env))
-    ep.POST( "/publishings",            publishings.SubmitPublishings(env))
     ep.GET(  "/publishings/publish",    publishings.ShowPublish(env))
     ep.POST( "/publishings/publish",    publishings.SubmitPublish(env))
 
