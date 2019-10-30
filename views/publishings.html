@@ -1,42 +1,35 @@
 {{ template "htmlbegin" . }}
 {{ template "dashboardbegin" . }}
 
-<a href="/publishings/publish" {{ if .publishingsUrl }} style="margin-top:5px" class="ui orange label"><i class="rss icon"></i> Publish scope</a>
+<a href="/publishings/publish?receiver={{ .receiver }}" style="margin-top:5px" class="ui orange label"><i class="rss icon"></i> Publish scope</a>
 
-  <div class="ui segments">
+<div class="ui segments">
 
-    <div class="ui segment">
-    {{ if .published }}
+  <div class="ui segment">
+  {{ if .publishings }}
 
-      {{range $publish := .published}}
+    {{range $publish := .publishings}}
 
-        <div class="ui teal ribbon label">
-          <i class="code icon"></i> {{ $publish.Title }}
-        </div>
-        <span> {{$publish.Description}} </span>
-
-        <div class="ui list">
-          <div class="item">
-            <i class="key icon"></i>
-            <div class="content">
-              <span data-tooltip="The identifier for your app">{{ $publish.Id }}</span>
-            </div>
-          </div>
-
-          <a href="{{ $publish.DeleteUrl }}" style="margin-top:5px" class="ui red label"><i class="power icon"></i> Delete publishing</a>
-        </div>
-
-      {{ end }}
+    <div class="ui {{ if $publish.MayGrantScopes }} orange {{ else }} green {{ end }} ribbon label">
+        <i class="rss icon"></i> {{ $publish.Scope }}
       </div>
+      <span> {{$publish.Description}} </span>
 
-    {{ else }}
-
-        None found.
+      <div class="ui list">
+        <a href="#" style="margin-top:5px" class="ui red label"><i class="power icon"></i> Delete publishing</a>
+      </div>
 
     {{ end }}
     </div>
 
+  {{ else }}
+
+      None found.
+
+  {{ end }}
   </div>
+
+</div>
 
 {{ template "dashboardend" . }}
 {{ template "htmlend" . }}

@@ -12,26 +12,13 @@ import (
   bulky "github.com/charmixer/bulky/client"
 
   aap "github.com/charmixer/aap/client"
-  idp "github.com/charmixer/idp/client"
+  _ "github.com/charmixer/idp/client"
 
   "github.com/charmixer/meui/config"
   "github.com/charmixer/meui/environment"
 
   "github.com/charmixer/meui/app"
-  f "github.com/go-playground/form"
-  "fmt"
 )
-
-type formInput struct {
-  Publisher     string
-  Receiver       string
-  Grants        []struct{
-    Scope          string
-    Enabled        bool
-    StartDate      string
-    EndDate        string
-  }
-}
 
 func ShowPublishings(env *environment.State) gin.HandlerFunc {
   fn := func(c *gin.Context) {
@@ -50,7 +37,6 @@ func ShowPublishings(env *environment.State) gin.HandlerFunc {
       return
     }
 
-    publisher, publisherExists := c.GetQuery("publisher")
     receiver, receiverExists := c.GetQuery("receiver")
 
     if !receiverExists {
@@ -71,7 +57,7 @@ func ShowPublishings(env *environment.State) gin.HandlerFunc {
     var accessToken *oauth2.Token
     accessToken = session.Get(environment.SessionTokenKey).(*oauth2.Token)
     aapClient := aap.NewAapClientWithUserAccessToken(env.HydraConfig, accessToken)
-    idpClient := idp.NewIdpClientWithUserAccessToken(env.HydraConfig, accessToken)
+    // idpClient := idp.NewIdpClientWithUserAccessToken(env.HydraConfig, accessToken)
 
     var url string
     var responses []bulky.Response
@@ -79,47 +65,9 @@ func ShowPublishings(env *environment.State) gin.HandlerFunc {
     var restErr []bulky.ErrorResponse
 
     // fetch publishes
-    var publishes aap.ReadPublishesResponse
-    var grantPublishes []aap.Publish
-    var mayGrantPublishes []aap.Publish
-    if publisherExists {
-      url = config.GetString("aap.public.url") + config.GetString("aap.public.endpoints.publishes")
-      _, responses, err = aap.ReadPublishes(aapClient, url, []aap.ReadPublishesRequest{
-        {Publisher: publisher},
-      })
-
-      if err != nil {
-        c.AbortWithStatus(404)
-        log.Debug(err.Error())
-        return
-      }
-
-      _, restErr = bulky.Unmarshal(0, responses, &publishes)
-      if len(restErr) > 0 {
-        for _,e := range restErr {
-          // TODO show user somehow
-          log.Debug("Rest error: " + e.Error)
-        }
-
-        c.AbortWithStatus(404)
-        return
-      }
-
-      for _,p := range publishes {
-        if len(p.MayGrantScopes) > 0 {
-          mayGrantPublishes = append(mayGrantPublishes, p)
-          continue
-        }
-
-        grantPublishes = append(grantPublishes, p)
-      }
-    }
-
-    // fetch grants
-
-    url = config.GetString("aap.public.url") + config.GetString("aap.public.endpoints.grants")
-    _, responses, err = aap.ReadGrants(aapClient, url, []aap.ReadGrantsRequest{
-      { Identity: receiver, Publisher: publisher},
+    url = config.GetString("aap.public.url") + config.GetString("aap.public.endpoints.publishes")
+    _, responses, err = aap.ReadPublishes(aapClient, url, []aap.ReadPublishesRequest{
+      {Publisher: receiver},
     })
 
     if err != nil {
@@ -128,36 +76,8 @@ func ShowPublishings(env *environment.State) gin.HandlerFunc {
       return
     }
 
-    var grants aap.ReadGrantsResponse
-    _, restErr = bulky.Unmarshal(0, responses, &grants)
-    if len(restErr) > 0 {
-      for _,e := range restErr {
-        // TODO show user somehow
-        log.Debug("Rest error: " + e.Error)
-      }
-
-      c.AbortWithStatus(404)
-      return
-    }
-
-    var hasGrantsMap = make(map[string]bool, len(grants))
-    for _,g := range grants {
-      hasGrantsMap[g.Scope] = true
-    }
-
-    // fetch resourceservers
-
-    url = config.GetString("idp.public.url") + config.GetString("idp.public.endpoints.resourceservers.collection")
-    _, responses, err = idp.ReadResourceServers(idpClient, url, nil)
-
-    if err != nil {
-      c.AbortWithStatus(404)
-      log.Debug(err.Error())
-      return
-    }
-
-    var resourceservers idp.ReadResourceServersResponse
-    _, restErr = bulky.Unmarshal(0, responses, &resourceservers)
+    var publishings aap.ReadPublishesResponse
+    _, restErr = bulky.Unmarshal(0, responses, &publishings)
     if len(restErr) > 0 {
       for _,e := range restErr {
         // TODO show user somehow
@@ -175,135 +95,10 @@ func ShowPublishings(env *environment.State) gin.HandlerFunc {
       },
 
       "title": "Publishings",
-      "hasGrantsMap": hasGrantsMap,
-      "grantPublishes": grantPublishes,
-      "mayGrantPublishes": mayGrantPublishes,
-      "resourceservers": resourceservers,
-      "publisher": publisher,
       "receiver": receiver,
+      "publishings": publishings,
     })
 
-  }
-  return gin.HandlerFunc(fn)
-}
-
-func SubmitPublishings(env *environment.State) gin.HandlerFunc {
-  fn := func(c *gin.Context) {
-    log := c.MustGet(environment.LogKey).(*logrus.Entry)
-    log = log.WithFields(logrus.Fields{
-      "func": "ShowAccess",
-    })
-
-    session := sessions.Default(c)
-
-    var idToken *oidc.IDToken
-    idToken = session.Get(environment.SessionIdTokenKey).(*oidc.IDToken)
-    if idToken == nil {
-      c.HTML(http.StatusNotFound, "grants.html", gin.H{"error": "Identity not found"})
-      c.Abort()
-      return
-    }
-
-    publisher, publisherExists := c.GetQuery("publisher")
-    receiver, receiverExists := c.GetQuery("receiver")
-
-    if !publisherExists || !receiverExists  {
-      log.WithFields(logrus.Fields{
-        "publisher": publisher,
-        "receiver": receiver,
-      }).Debug("publisher and receiver must exists")
-      c.AbortWithStatus(404)
-      return
-    }
-
-    var form formInput
-    c.Request.ParseForm()
-
-    decoder := f.NewDecoder()
-
-    // must pass a pointer
-    err := decoder.Decode(&form, c.Request.Form)
-    if err != nil {
-      log.Panic(err)
-      c.AbortWithStatus(404)
-      return
-    }
-
-    var accessToken *oauth2.Token
-    accessToken = session.Get(environment.SessionTokenKey).(*oauth2.Token)
-    aapClient := aap.NewAapClientWithUserAccessToken(env.HydraConfig, accessToken)
-
-    var createGrantsRequests []aap.CreateGrantsRequest
-    var deleteGrantsRequests []aap.DeleteGrantsRequest
-    for _,grant := range form.Grants {
-      if grant.Enabled {
-        createGrantsRequests = append(createGrantsRequests, aap.CreateGrantsRequest{
-          Identity: receiver,
-          Scope: grant.Scope,
-          Publisher: publisher,
-          OnBehalfOf: publisher, // TODO FIXME this should be something you can choose from the gui (data scoped access rights)
-        })
-        continue;
-      }
-
-      // deny by default
-      deleteGrantsRequests = append(deleteGrantsRequests, aap.DeleteGrantsRequest{
-        Identity: receiver,
-        Scope: grant.Scope,
-        Publisher: publisher,
-      })
-    }
-
-    url := config.GetString("aap.public.url") + config.GetString("aap.public.endpoints.grants")
-
-    createStatus, createResponses, err := aap.CreateGrants(aapClient, url, createGrantsRequests)
-    if err != nil {
-      log.Debug(err.Error())
-      c.AbortWithStatus(404)
-      return
-    }
-
-    /*
-    deleteStatus, deleteResponses, err := aap.DeleteGrants(aapClient, url, deleteGrantsRequests)
-
-    if err != nil {
-      log.Debug(err.Error())
-      c.AbortWithStatus(404)
-      return
-    }
-    */
-
-    if createStatus == 200 /* && deleteStatus == 200 */ {
-      var createGrants aap.CreateGrantsResponse
-      _, restErr := bulky.Unmarshal(0, createResponses, &createGrants)
-      if restErr != nil {
-        for _,e := range restErr {
-          // TODO show user somehow
-          log.Debug("Rest error: " + e.Error)
-        }
-        c.AbortWithStatus(404)
-        return
-      }
-
-      /*
-      var deleteGrants aap.DeleteGrantsResponse
-      _, restErr = bulky.Unmarshal(0, deleteResponses, &deleteGrants)
-      if restErr != nil {
-        for _,e := range restErr {
-          // TODO show user somehow
-          log.Debug("Rest error: " + e.Error)
-        }
-        c.AbortWithStatus(404)
-        return
-      }
-      */
-
-      c.Redirect(http.StatusFound, fmt.Sprintf("/access/grant?receiver=%s&publisher=%s", receiver, publisher))
-      c.Abort()
-      return
-    }
-
-    c.AbortWithStatus(404)
   }
   return gin.HandlerFunc(fn)
 }
