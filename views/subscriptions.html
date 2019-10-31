@@ -1,6 +1,6 @@
 {{ $publisher := .publisher }}
 {{ $receiver := .receiver }}
-{{ $hasGrantsMap := .hasGrantsMap }}
+{{ $hasSubscribedMap := .hasSubscribedMap }}
 
 {{ template "htmlbegin" . }}
 {{ template "dashboardbegin" . }}
@@ -25,38 +25,30 @@
 {{ if .publisher }}
 
   <div class="ui segment">
-    {{ if .grantPublishes }}
+    {{ if .publishes }}
     <form class="ui form" method="post" action="/subscriptions?receiver={{ $receiver }}&publisher={{ $publisher }}">
       {{ .csrfField }}
 
       <div class="fields" style="padding: 0 30%">
-        <button class="ui fluid positive button">Give grants</button>
+        <button class="ui fluid positive button">Save subscriptions</button>
       </div>
 
-      <h4 class="ui horizontal divider header">
-        Grants
-      </h4>
+      {{ range $key, $publish := .publishes }}
+        <input type="hidden" name="Publishings[{{ $key }}].Scope" value="{{ $publish.Scope }}" />
 
-      {{ range $key, $publish := .grantPublishes }}
-        <input type="hidden" name="Grants[{{ $key }}].Scope" value="{{ $publish.Scope }}" />
-        <a class="ui blue ribbon label" style="margin-bottom:10px">{{ $publish.Scope }}</a> {{ $publish.Title }}
-
-        <div class="three fields">
+        <div class="two fields">
           <div class="field">
-            <label>Enable</label>
+            <label>Scope</label>
+            <a href="#" style="margin-top:5px" class="ui blue label" {{ if $publish.Title }} data-tooltip="{{ $publish.Title }}" {{ end }}>{{ $publish.Scope }}</a>
+          </div>
+          <div class="field">
+            <label>Subscribed</label>
             <div class="ui toggle checkbox">
-              <input type="checkbox" {{ if index $hasGrantsMap $publish.Scope }} checked {{ end }} class="enable" name="Grants[{{ $key }}].Enabled" tabindex="0">
+              <input type="checkbox" {{ if index $hasSubscribedMap $publish.Scope }} checked {{ end }} class="enable" name="Publishings[{{ $key }}].Subscribed" tabindex="0">
             </div>
           </div>
-          <div class="field">
-            <label>Start date</label>
-            <input type="date" class="startdate" name="Grants[{{ $key }}].StartDate" placeholder="From">
-          </div>
-          <div class="field">
-            <label>End date</label>
-            <input type="date" class="enddate" name="Grants[{{ $key }}].EndDate" placeholder="To">
-          </div>
         </div>
+
         <div class="ui divider"></div>
       {{ end }}
 

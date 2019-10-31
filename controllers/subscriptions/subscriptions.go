@@ -23,13 +23,11 @@ import (
 )
 
 type formInput struct {
-  Publisher     string
   Receiver      string
-  Grants        []struct{
+  Publisher     string
+  Publishings   []struct{
     Scope          string
-    Enabled        bool
-    StartDate      string
-    EndDate        string
+    Subscribed     bool
   }
 }
 
@@ -79,9 +77,7 @@ func ShowSubscriptions(env *environment.State) gin.HandlerFunc {
     var restErr []bulky.ErrorResponse
 
     // fetch publishes
-    var publishes aap.ReadPublishesResponse
-    var grantPublishes []aap.Publish
-    var mayGrantPublishes []aap.Publish
+    var readPublishesResponse aap.ReadPublishesResponse
     if publisherExists {
       url = config.GetString("aap.public.url") + config.GetString("aap.public.endpoints.publishes")
       _, responses, err = aap.ReadPublishes(aapClient, url, []aap.ReadPublishesRequest{
@@ -94,7 +90,7 @@ func ShowSubscriptions(env *environment.State) gin.HandlerFunc {
         return
       }
 
-      _, restErr = bulky.Unmarshal(0, responses, &publishes)
+      _, restErr = bulky.Unmarshal(0, responses, &readPublishesResponse)
       if len(restErr) > 0 {
         for _,e := range restErr {
           // TODO show user somehow
@@ -104,18 +100,9 @@ func ShowSubscriptions(env *environment.State) gin.HandlerFunc {
         c.AbortWithStatus(404)
         return
       }
-
-      for _,p := range publishes {
-        if len(p.MayGrantScopes) > 0 {
-          mayGrantPublishes = append(mayGrantPublishes, p)
-          continue
-        }
-
-        grantPublishes = append(grantPublishes, p)
-      }
     }
 
-    // fetch grants
+    // fetch subscriptions
 
     url = config.GetString("aap.public.url") + config.GetString("aap.public.endpoints.grants")
     _, responses, err = aap.ReadGrants(aapClient, url, []aap.ReadGrantsRequest{
@@ -140,9 +127,9 @@ func ShowSubscriptions(env *environment.State) gin.HandlerFunc {
       return
     }
 
-    var hasGrantsMap = make(map[string]bool, len(grants))
+    var hasSubscribedMap = make(map[string]bool, len(grants))
     for _,g := range grants {
-      hasGrantsMap[g.Scope] = true
+      hasSubscribedMap[g.Scope] = true
     }
 
     // fetch resourceservers
@@ -174,10 +161,9 @@ func ShowSubscriptions(env *environment.State) gin.HandlerFunc {
         {"href": "/public/css/dashboard.css"},
       },
 
-      "title": "Subscriptions",
-      "hasGrantsMap": hasGrantsMap,
-      "grantPublishes": grantPublishes,
-      "mayGrantPublishes": mayGrantPublishes,
+      "title": "Subscriptions for " + receiver,
+      "hasSubscribedMap": hasSubscribedMap,
+      "publishes": readPublishesResponse,
       "resourceservers": resourceservers,
       "publisher": publisher,
       "receiver": receiver,
@@ -233,49 +219,38 @@ func SubmitSubscriptions(env *environment.State) gin.HandlerFunc {
     accessToken = session.Get(environment.SessionTokenKey).(*oauth2.Token)
     aapClient := aap.NewAapClientWithUserAccessToken(env.HydraConfig, accessToken)
 
-    var createGrantsRequests []aap.CreateGrantsRequest
-    var deleteGrantsRequests []aap.DeleteGrantsRequest
-    for _,grant := range form.Grants {
-      if grant.Enabled {
-        createGrantsRequests = append(createGrantsRequests, aap.CreateGrantsRequest{
-          Identity: receiver,
-          Scope: grant.Scope,
+    var createSubscriptionsRequests []aap.CreateSubscriptionsRequest
+    var deleteSubscriptionsRequests []aap.DeleteSubscriptionsRequest
+    for _,publishing := range form.Publishings {
+      if publishing.Subscribed {
+        createSubscriptionsRequests = append(createSubscriptionsRequests, aap.CreateSubscriptionsRequest{
+          Subscriber: receiver,
           Publisher: publisher,
-          OnBehalfOf: publisher, // TODO FIXME this should be something you can choose from the gui (data scoped access rights)
+          Scope: publishing.Scope,
         })
         continue;
       }
 
       // deny by default
-      deleteGrantsRequests = append(deleteGrantsRequests, aap.DeleteGrantsRequest{
-        Identity: receiver,
-        Scope: grant.Scope,
+      deleteSubscriptionsRequests = append(deleteSubscriptionsRequests, aap.DeleteSubscriptionsRequest{
+        Subscriber: receiver,
         Publisher: publisher,
+        Scope: publishing.Scope,
       })
     }
 
-    url := config.GetString("aap.public.url") + config.GetString("aap.public.endpoints.grants")
+    url := config.GetString("aap.public.url") + config.GetString("aap.public.endpoints.subscriptions")
 
-    createStatus, createResponses, err := aap.CreateGrants(aapClient, url, createGrantsRequests)
+    createStatus, createResponses, err := aap.CreateSubscriptions(aapClient, url, createSubscriptionsRequests)
     if err != nil {
       log.Debug(err.Error())
       c.AbortWithStatus(404)
       return
     }
 
-    /*
-    deleteStatus, deleteResponses, err := aap.DeleteGrants(aapClient, url, deleteGrantsRequests)
-
-    if err != nil {
-      log.Debug(err.Error())
-      c.AbortWithStatus(404)
-      return
-    }
-    */
-
-    if createStatus == 200 /* && deleteStatus == 200 */ {
-      var createGrants aap.CreateGrantsResponse
-      _, restErr := bulky.Unmarshal(0, createResponses, &createGrants)
+    if createStatus == 200 {
+      var createSubscriptions aap.CreateSubscriptionsResponse
+      _, restErr := bulky.Unmarshal(0, createResponses, &createSubscriptions)
       if restErr != nil {
         for _,e := range restErr {
           // TODO show user somehow
@@ -285,20 +260,7 @@ func SubmitSubscriptions(env *environment.State) gin.HandlerFunc {
         return
       }
 
-      /*
-      var deleteGrants aap.DeleteGrantsResponse
-      _, restErr = bulky.Unmarshal(0, deleteResponses, &deleteGrants)
-      if restErr != nil {
-        for _,e := range restErr {
-          // TODO show user somehow
-          log.Debug("Rest error: " + e.Error)
-        }
-        c.AbortWithStatus(404)
-        return
-      }
-      */
-
-      c.Redirect(http.StatusFound, fmt.Sprintf("/access/grant?receiver=%s&publisher=%s", receiver, publisher))
+      c.Redirect(http.StatusFound, fmt.Sprintf("/subscriptions?receiver=%s&publisher=%s", receiver, publisher))
       c.Abort()
       return
     }
