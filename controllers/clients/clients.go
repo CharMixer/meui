@@ -86,17 +86,18 @@ func ShowClients(env *environment.State) gin.HandlerFunc {
 
       for _, client := range clients {
 
-        _grantsUrl := grantsUrl
+        _grantsUrl := *grantsUrl
         q := _grantsUrl.Query()
         q.Add("receiver", client.Id)
         _grantsUrl.RawQuery = q.Encode()
 
-        _subscriptionsUrl := subscriptionsUrl
+        _subscriptionsUrl := *subscriptionsUrl
+        fmt.Println(_subscriptionsUrl.String())
         q = _subscriptionsUrl.Query()
         q.Add("receiver", client.Id)
         _subscriptionsUrl.RawQuery = q.Encode()
 
-        _deleteUrl := deleteUrl
+        _deleteUrl := *deleteUrl
         q = _deleteUrl.Query()
         q.Add("id", client.Id)
         _deleteUrl.RawQuery = q.Encode()

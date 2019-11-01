@@ -23,8 +23,6 @@ import (
 )
 
 type formInput struct {
-  Receiver      string
-  Publisher     string
   Publishings   []struct{
     Scope          string
     Subscribed     bool
@@ -61,7 +59,7 @@ func ShowSubscriptions(env *environment.State) gin.HandlerFunc {
     var idToken *oidc.IDToken
     idToken = session.Get(environment.SessionIdTokenKey).(*oidc.IDToken)
     if idToken == nil {
-      c.HTML(http.StatusNotFound, "grants.html", gin.H{"error": "Identity not found"})
+      c.HTML(http.StatusNotFound, "subscriptions.html", gin.H{"error": "Identity not found"})
       c.Abort()
       return
     }
@@ -104,9 +102,9 @@ func ShowSubscriptions(env *environment.State) gin.HandlerFunc {
 
     // fetch subscriptions
 
-    url = config.GetString("aap.public.url") + config.GetString("aap.public.endpoints.grants")
-    _, responses, err = aap.ReadGrants(aapClient, url, []aap.ReadGrantsRequest{
-      { Identity: receiver, Publisher: publisher},
+    url = config.GetString("aap.public.url") + config.GetString("aap.public.endpoints.subscriptions")
+    _, responses, err = aap.ReadSubscriptions(aapClient, url, []aap.ReadSubscriptionsRequest{
+      {Subscriber: receiver},
     })
 
     if err != nil {
@@ -115,8 +113,8 @@ func ShowSubscriptions(env *environment.State) gin.HandlerFunc {
       return
     }
 
-    var grants aap.ReadGrantsResponse
-    _, restErr = bulky.Unmarshal(0, responses, &grants)
+    var subscriptions aap.ReadSubscriptionsResponse
+    _, restErr = bulky.Unmarshal(0, responses, &subscriptions)
     if len(restErr) > 0 {
       for _,e := range restErr {
         // TODO show user somehow
@@ -127,9 +125,9 @@ func ShowSubscriptions(env *environment.State) gin.HandlerFunc {
       return
     }
 
-    var hasSubscribedMap = make(map[string]bool, len(grants))
-    for _,g := range grants {
-      hasSubscribedMap[g.Scope] = true
+    var hasSubscribedMap = make(map[string]bool, len(subscriptions))
+    for _,s := range subscriptions {
+      hasSubscribedMap[s.Scope] = true
     }
 
     // fetch resourceservers
