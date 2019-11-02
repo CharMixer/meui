@@ -19,8 +19,8 @@ import (
 )
 
 type clientForm struct {
-  Name        string `form:"clientname"  binding:"required" validate:"required,notblank"`
-  Description string `form:"description" binding:"required" validate:"required,notblank"`
+  Name        string `form:"clientname"  validate:"required,notblank"`
+  Description string `form:"description" validate:"required,notblank"`
   IsPublic    []string `form:"is_public"`
 }
 
