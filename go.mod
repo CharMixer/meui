@@ -20,5 +20,3 @@ require (
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	gopkg.in/go-playground/validator.v9 v9.30.0
 )
-
-replace github.com/charmixer/idp => /Users/mnk/projects/sso/idp
