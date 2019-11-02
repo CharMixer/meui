@@ -24,7 +24,7 @@ import (
 
 type formInput struct {
   Publishings   []struct{
-    Scope          string
+    Scope          string `form:"" validate:""`
     Subscribed     bool
   }
 }

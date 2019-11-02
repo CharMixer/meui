@@ -210,7 +210,7 @@ $(function(){
 {{if .errorClientName}}
   <div class="required field {{if .errorClientName}}error{{end}}">
     <div class="ui right labeled left icon input focus">
-      <i class="dragon icon"></i>
+      <i class="code icon"></i>
       <input type="text" name="clientname" placeholder="Name" value="{{.clientName}}" required />
       <div class="ui red tag label">
         {{ .errorClientName }}
@@ -220,7 +220,7 @@ $(function(){
 {{else}}
   <div class="required field">
     <div class="ui left icon input focus">
-      <i class="dragon icon"></i>
+      <i class="code icon"></i>
       <input type="text" name="clientname" placeholder="Name" value="{{.clientName}}" required />
     </div>
   </div>
