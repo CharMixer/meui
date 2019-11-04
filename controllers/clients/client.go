@@ -11,7 +11,7 @@ import (
   "github.com/gin-contrib/sessions"
   idp "github.com/charmixer/idp/client"
 
-  "github.com/go-playground/form"
+  form "github.com/go-playground/form/v4"
 
   bulky "github.com/charmixer/bulky/client"
 
@@ -141,6 +141,24 @@ func SubmitClient(env *environment.State) gin.HandlerFunc {
       isPublic = input.IsPublic[0] == "on"
     }
 
+    var redirectUris []string
+    for _,uri := range input.RedirectUri {
+      if uri == "" {
+        continue
+      }
+
+      redirectUris = append(redirectUris, uri)
+    }
+
+    var postLogoutRedirectUris []string
+    for _,uri := range input.PostLogoutRedirectUri {
+      if uri == "" {
+        continue
+      }
+
+      postLogoutRedirectUris = append(postLogoutRedirectUris, uri)
+    }
+
     identity := app.GetIdentity(c)
     if identity == nil {
       log.Debug("Missing Identity")
@@ -231,8 +249,8 @@ func SubmitClient(env *environment.State) gin.HandlerFunc {
         Description:             input.Description,
         ResponseTypes:           input.ResponseType,
         GrantTypes:              input.GrantType,
-        RedirectUris:            input.RedirectUri,
-        PostLogoutRedirectUris:  input.PostLogoutRedirectUri,
+        RedirectUris:            redirectUris,
+        PostLogoutRedirectUris:  postLogoutRedirectUris,
         TokenEndpointAuthMethod: input.TokenEndpointAuthMethod,
         IsPublic:                isPublic,
       },
