@@ -124,8 +124,6 @@
   $(function(){
     $('.ui.dropdown').dropdown();
 
-    $("input[name=TokenEndpointAuthMethod").parent().dropdown()
-
     $("body").on("click", "input[name^=RedirectUri] ~ .button, input[name^=PostLogoutRedirectUri] ~ .button", function(e){
       e.preventDefault();
       var field = $(this).closest(".field");
