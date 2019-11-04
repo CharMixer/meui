@@ -11,6 +11,10 @@ import (
   "github.com/gin-contrib/sessions"
   idp "github.com/charmixer/idp/client"
 
+  "github.com/go-playground/form"
+
+  bulky "github.com/charmixer/bulky/client"
+
   "github.com/charmixer/meui/app"
   "github.com/charmixer/meui/config"
   "github.com/charmixer/meui/environment"
@@ -18,18 +22,24 @@ import (
   "github.com/charmixer/meui/validators"
 )
 
-type clientForm struct {
-  Name        string `form:"clientname"  validate:"required,notblank"`
-  Description string `form:"description" validate:"required,notblank"`
-  IsPublic    []string `form:"is_public"`
+type formInput struct {
+  Name                    string   `validate:"required,notblank"`
+  Description             string   `validate:"required,notblank"`
+  RedirectUri             []string
+  PostLogoutRedirectUri   []string
+  TokenEndpointAuthMethod string
+  GrantType               []string
+  ResponseType            []string
+  IsPublic                []string
 }
 
 const ClientFieldsKey = "client.fields"
 const ClientErrorsKey = "client.errors"
+const RestErrorsKey   = "rest.errors"
 
-const ClientNameKey = "clientname"
-const ClientDescriptionKey = "description"
-const ClientIsPublicKey = "is_public"
+const ClientNameKey = "Name"
+const ClientDescriptionKey = "Description"
+const ClientIsPublicKey = "IsPublic"
 
 func ShowClient(env *environment.State) gin.HandlerFunc {
   fn := func(c *gin.Context) {
@@ -63,13 +73,14 @@ func ShowClient(env *environment.State) gin.HandlerFunc {
       }
     }
 
-    errors := session.Flashes(ClientErrorsKey)
+    errors     := session.Flashes(ClientErrorsKey)
+    restErrors := session.Flashes(RestErrorsKey)
     err := session.Save() // Remove flashes read, and save submit fields
     if err != nil {
       log.Debug(err.Error())
     }
 
-    var errorClientName string
+    var errorName string
     var errorDescription string
 
     if len(errors) > 0 {
@@ -77,7 +88,7 @@ func ShowClient(env *environment.State) gin.HandlerFunc {
       for k, v := range errorsMap {
 
         if k == ClientNameKey && len(v) > 0 {
-          errorClientName = strings.Join(v, ", ")
+          errorName = strings.Join(v, ", ")
         }
 
         if k == ClientDescriptionKey && len(v) > 0 {
@@ -95,8 +106,9 @@ func ShowClient(env *environment.State) gin.HandlerFunc {
       csrf.TemplateTag: csrf.TemplateField(c.Request),
       ClientNameKey: clientName,
       ClientDescriptionKey: description,
-      "errorClientName": errorClientName,
+      "errorName": errorName,
       "errorDesecription": errorDescription,
+      "restErrors": restErrors,
       "clientUrl": config.GetString("meui.public.url") + config.GetString("meui.public.endpoints.client"),
     })
   }
@@ -111,17 +123,22 @@ func SubmitClient(env *environment.State) gin.HandlerFunc {
       "func": "SubmitClient",
     })
 
-    var form clientForm
-    err := c.Bind(&form)
+    var input formInput
+    c.Request.ParseForm()
+
+    decoder := form.NewDecoder()
+
+    // must pass a pointer
+    err := decoder.Decode(&input, c.Request.Form)
     if err != nil {
-      c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-      c.Abort()
+      log.Panic(err)
+      c.AbortWithStatus(404)
       return
     }
 
     var isPublic bool = false
-    if len(form.IsPublic) > 0 {
-      isPublic = form.IsPublic[0] == "on"
+    if len(input.IsPublic) > 0 {
+      isPublic = input.IsPublic[0] == "on"
     }
 
     identity := app.GetIdentity(c)
@@ -135,8 +152,8 @@ func SubmitClient(env *environment.State) gin.HandlerFunc {
 
     // Save values if submit fails
     fields := make(map[string][]string)
-    fields[ClientNameKey] = append(fields[ClientNameKey], form.Name)
-    fields[ClientDescriptionKey] = append(fields[ClientDescriptionKey], form.Description)
+    fields[ClientNameKey] = append(fields[ClientNameKey], input.Name)
+    fields[ClientDescriptionKey] = append(fields[ClientDescriptionKey], input.Description)
 
     session.AddFlash(fields, ClientFieldsKey)
     err = session.Save()
@@ -147,7 +164,7 @@ func SubmitClient(env *environment.State) gin.HandlerFunc {
     errors := make(map[string][]string)
     validate := validator.New()
     validate.RegisterValidation("notblank", validators.NotBlank)
-    err = validate.Struct(form)
+    err = validate.Struct(input)
     if err != nil {
 
       // Validation syntax is invalid
@@ -157,7 +174,7 @@ func SubmitClient(env *environment.State) gin.HandlerFunc {
         return
       }
 
-      reflected := reflect.ValueOf(form) // Use reflector to reverse engineer struct
+      reflected := reflect.ValueOf(input) // Use reflector to reverse engineer struct
       for _, err := range err.(validator.ValidationErrors){
 
         // Attempt to find field by name and get json tag name
@@ -208,24 +225,32 @@ func SubmitClient(env *environment.State) gin.HandlerFunc {
 
     idpClient := app.IdpClientUsingAuthorizationCode(env, c)
 
-    status, _, err := idp.CreateClients(idpClient, config.GetString("idp.public.url") + config.GetString("idp.public.endpoints.clients.collection"), []idp.CreateClientsRequest{
+    status, responses, err := idp.CreateClients(idpClient, config.GetString("idp.public.url") + config.GetString("idp.public.endpoints.clients.collection"), []idp.CreateClientsRequest{
       {
-        Name: form.Name,
-        Description: form.Description,
-        IsPublic: isPublic,
+        Name:                    input.Name,
+        Description:             input.Description,
+        ResponseTypes:           input.ResponseType,
+        GrantTypes:              input.GrantType,
+        RedirectUris:            input.RedirectUri,
+        PostLogoutRedirectUris:  input.PostLogoutRedirectUri,
+        TokenEndpointAuthMethod: input.TokenEndpointAuthMethod,
+        IsPublic:                isPublic,
       },
     })
-    if err != nil {
+    if err != nil || status != 200 {
       log.Debug("Client create failed")
       c.AbortWithStatus(http.StatusInternalServerError)
       return
     }
 
-    if status == 200 {
+    var createClientResponse idp.CreateClientsResponse
+    _, restErr := bulky.Unmarshal(0, responses, &createClientResponse)
 
+    if restErr == nil {
       // Cleanup session
       session.Delete(ClientFieldsKey)
       session.Delete(ClientErrorsKey)
+      session.Delete(RestErrorsKey)
       err = session.Save()
       if err != nil {
         log.Debug(err.Error())
