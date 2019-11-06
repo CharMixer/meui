@@ -11,7 +11,7 @@ import (
   "github.com/gin-contrib/sessions"
   idp "github.com/charmixer/idp/client"
 
-  form "github.com/go-playground/form/v4"
+  "github.com/go-playground/form"
 
   bulky "github.com/charmixer/bulky/client"
 
