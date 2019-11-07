@@ -1,0 +1,53 @@
+{{ template "htmlbegin" . }}
+{{ template "dashboardbegin" . }}
+
+  <a href="/role" style="margin-top:5px" class="ui purple label"><i class="theater masks icon"></i> Create role</a>
+
+  <div class="ui segments">
+
+    {{ if .created }}
+
+      <div class="ui segment">
+      {{range $role := .created}}
+
+        <div class="ui teal ribbon label">
+          <i class="code icon"></i> {{ $role.Name }}
+        </div>
+        <span> {{$role.Description}} </span>
+
+        <div class="ui list">
+          <div class="item">
+            <i class="key icon"></i>
+            <div class="content">
+              <span data-tooltip="The identifier for your app">{{ $role.Id }}</span>
+            </div>
+          </div>
+
+          <a href="{{ $role.GrantsUrl }}" style="margin-top:5px" class="ui green label"><i class="user lock icon"></i> Grants</a>
+          <a href="{{ $role.DeleteUrl }}" style="margin-top:5px" class="ui red label"><i class="power icon"></i> Delete role</a>
+
+        </div>
+
+      {{ end }}
+      </div>
+
+    {{ else }}
+
+      <div class="ui segment">
+        None found.
+      </div>
+
+    {{ end }}
+
+  </div>
+
+<script>
+
+  $(function(){
+
+  });
+
+</script>
+
+{{ template "dashboardend" . }}
+{{ template "htmlend" . }}

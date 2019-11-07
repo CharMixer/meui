@@ -1,0 +1,41 @@
+{{ template "htmlbegin" . }}
+{{ template "dashboardbegin" . }}
+
+  <div class="ui segments">
+
+    <div class="ui segment">
+
+    <form class="ui form" action="{{ .resourceServerUrl }}" method="post">
+      {{ .csrfField }}
+
+      <div class="ui teal ribbon label">
+        <i class="theater masks icon"></i> Create
+      </div>
+      <span>Create a role</span>
+
+      <div class="ui hidden divider"></div>
+
+      <div class="required field">
+        <div class="ui right labeled left icon input focus">
+          <i class="theater masks icon"></i>
+          <input type="text" name="Name" placeholder="Name your role" value="{{.resourceServerName}}" />
+        </div>
+      </div>
+
+      <div class="required field">
+        <div class="ui right labeled input focus">
+          <textarea placeholder="Give it a nice description" name="Description"></textarea>
+        </div>
+      </div>
+
+      <div class="ui hidden divider"></div>
+
+      <button class="ui green button" type="submit"><i class="save icon"></i> Create Role</button>
+    </form>
+
+    </div>
+
+  </div>
+
+{{ template "dashboardend" . }}
+{{ template "htmlend" . }}

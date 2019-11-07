@@ -7,18 +7,18 @@
 
     <form class="ui form" action="{{ .submitUrl }}" method="post">
       {{ .csrfField }}
-      <input type="hidden" name="id" value="{{ .id }}" />
+      <input type="hidden" name="Id" value="{{ .role.Id }}" />
 
       <div class="ui teal ribbon label">
-        <i class="server icon"></i> Delete
+        <i class="theater masks icon"></i> Delete
       </div>
-      <span>Delete a client</span>
+      <span>Delete a role</span>
 
       <div class="ui hidden divider"></div>
 
-      <p>You are about to delete the client <span data-tooltip="{{.client.Description}}" class="ui blue label">{{ .client.Name }}</span> with <span class="ui blue label" data-tooltip="The identifier for the client in the system"><i class="key icon"></i> {{.client.Id}}</span></p>
+      <p>You are about to delete the role <span data-tooltip="{{.role.Description}}" class="ui purple label"><i class="theater masks icon"></i> {{ .role.Name }}</span> with <span class="ui purple label" data-tooltip="The identifier for the role in the system"><i class="key icon"></i> {{.role.Id}}</span></p>
       <p>
-        You must accept the risk to delete the client.<br><br>
+        You must accept the risk to delete the role.<br><br>
         Beware this is a non recoverable action. Meaning we cannot restore the resource server once deleted.<br><br>
         All information will be lost.<br><br>
         Stay safe.
@@ -28,7 +28,7 @@
 
       <div class="ui hidden divider"></div>
 
-      <button class="ui red button" type="submit"><i class="power icon"></i> Delete Client</button>
+      <button class="ui red button" type="submit"><i class="power icon"></i> Delete Role</button>
     </form>
 
     </div>

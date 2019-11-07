@@ -120,6 +120,16 @@ func IdpClientUsingClientCredentials(env *environment.State, c *gin.Context) (*i
   return idp.NewIdpClient(env.IdpApiConfig)
 }
 
+func AapClientUsingAuthorizationCode(env *environment.State, c *gin.Context) (*aap.AapClient) {
+  session := sessions.Default(c)
+  t := session.Get(environment.SessionTokenKey)
+  if t != nil {
+    accessToken := t.(*oauth2.Token)
+    return aap.NewAapClientWithUserAccessToken(env.HydraConfig, accessToken)
+  }
+  return nil
+}
+
 func AapClientUsingClientCredentials(env *environment.State, c *gin.Context) (*aap.AapClient) {
   return aap.NewAapClient(env.AapApiConfig)
 }
