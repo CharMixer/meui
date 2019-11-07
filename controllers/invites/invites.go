@@ -44,7 +44,8 @@ func ShowInvites(env *environment.State) gin.HandlerFunc {
 
     idpClient := app.IdpClientUsingAuthorizationCode(env, c)
 
-    status, responses, err := idp.ReadInvites(idpClient, config.GetString("idp.public.url") + config.GetString("idp.public.endpoints.invites.collection"), nil)
+    callUrl := config.GetString("idp.public.url") + config.GetString("idp.public.endpoints.invites.collection")
+    status, responses, err := idp.ReadInvites(idpClient, callUrl, nil)
     if err != nil {
       log.Debug(err.Error())
       c.AbortWithStatus(http.StatusInternalServerError)
@@ -52,7 +53,7 @@ func ShowInvites(env *environment.State) gin.HandlerFunc {
     }
 
     if status != 200 {
-      log.Debug(err.Error())
+      log.Debug("Failed to get 200 from " + callUrl);
       c.AbortWithStatus(http.StatusInternalServerError)
       return
     }
