@@ -57,7 +57,7 @@ func ShowLogout(env *environment.State) gin.HandlerFunc {
     q := logoutUrl.Query()
     q.Add("state", state)
     q.Add("id_token_hint", idToken)
-    q.Add("post_logout_redirect_uri", "https://me.localhost/seeyoulater")
+    q.Add("post_logout_redirect_uri", config.GetString("meui.public.url") + config.GetString("meui.public.endpoints.seeyoulater"))
     logoutUrl.RawQuery = q.Encode()
 
     redirectTo := logoutUrl.String()
