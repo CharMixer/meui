@@ -1,8 +1,15 @@
 {{ template "htmlbegin" . }}
 
-  <p>See you later!</p>
+<div class="ui padded middle aligned center aligned grid">
+  <div class="column">
 
-  <p>Session cleared: {{ .sessionCleared }}</p>
+    <div class="ui divider hidden"></div>
+
+    <p>See you later!</p>
+
+    <p>Session Cleared: {{.sessionCleared}}</p>
+
+  </div>
+</div>
 
 {{ template "htmlend" . }}
-
