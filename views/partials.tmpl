@@ -9,8 +9,8 @@
   <meta name="author" content="CharMixer">
 
   <!-- load all styles -->
-  <link rel="stylesheet" type="text/css" href="/public/lib/Fomantic-UI-CSS/semantic.min.css">
-  <link href="/public/css/lato.css" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="/public/lib/fomantic/dist/semantic.min.css">
+  <link href="/public/css/roboto.css" rel="stylesheet">
 
   {{ range $value := .links }}
     <link rel="{{ or $value.rel "stylesheet" }}" type="{{ or $value.type "text/css" }}" href="{{ $value.href }}">
@@ -18,7 +18,7 @@
 
   <!-- load all scripts -->
   <script src="/public/js/jquery-3.3.1.min.js"></script>
-  <script src="/public/lib/Fomantic-UI-CSS/semantic.min.js"></script>
+  <script src="/public/lib/fomantic/dist/semantic.min.js"></script>
   {{ range $value := .scripts }}
     <script type="{{ or $value.type "text/javascript" }}" src="{{ $value.src }}"></script>
   {{ end }}
