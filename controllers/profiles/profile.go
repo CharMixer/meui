@@ -37,6 +37,7 @@ func ShowProfile(env *environment.State) gin.HandlerFunc {
       "email": identity.Email,
       "totp_required": identity.TotpRequired,
       "meUiUrl": config.GetString("meui.public.url"),
+      "changeEmailUrl": config.GetString("idpui.public.url") + config.GetString("idpui.public.endpoints.emailchange"),
       "changePasswordUrl": config.GetString("idpui.public.url") + config.GetString("idpui.public.endpoints.password"),
       "profileDeleteUrl": config.GetString("idpui.public.url") + config.GetString("idpui.public.endpoints.delete"),
       "setupTotpUrl": config.GetString("idpui.public.url") + config.GetString("idpui.public.endpoints.totp"),
