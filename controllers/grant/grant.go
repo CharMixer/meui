@@ -251,29 +251,37 @@ func SubmitGrants(env *environment.State) gin.HandlerFunc {
         Identity: receiver,
         Scope: grant.Scope,
         Publisher: publisher,
+        OnBehalfOf: publisher, // TODO FIXME this should be something you can choose from the gui (data scoped access rights)
       })
     }
 
     url := config.GetString("aap.public.url") + config.GetString("aap.public.endpoints.grants")
 
-    createStatus, createResponses, err := aap.CreateGrants(aapClient, url, createGrantsRequests)
-    if err != nil {
-      log.Debug(err.Error())
-      c.AbortWithStatus(404)
-      return
+    var createStatus int
+    var createResponses []bulky.Response
+    if createGrantsRequests != nil {
+      createStatus, createResponses, err = aap.CreateGrants(aapClient, url, createGrantsRequests)
+      if err != nil {
+        log.Debug(err.Error())
+        c.AbortWithStatus(404)
+        return
+      }
     }
 
-    /*
-    deleteStatus, deleteResponses, err := aap.DeleteGrants(aapClient, url, deleteGrantsRequests)
-
-    if err != nil {
-      log.Debug(err.Error())
-      c.AbortWithStatus(404)
-      return
+    var deleteStatus int
+    var deleteResponses []bulky.Response
+    if deleteGrantsRequests != nil {
+      deleteStatus, deleteResponses, err = aap.DeleteGrants(aapClient, url, deleteGrantsRequests)
+      if err != nil {
+        log.Debug(err.Error())
+        c.AbortWithStatus(404)
+        return
+      }
     }
-    */
 
-    if createStatus == 200 /* && deleteStatus == 200 */ {
+    foundErrors := false
+
+    if createStatus == 200 {
       var createGrants aap.CreateGrantsResponse
       _, restErr := bulky.Unmarshal(0, createResponses, &createGrants)
       if restErr != nil {
@@ -281,23 +289,24 @@ func SubmitGrants(env *environment.State) gin.HandlerFunc {
           // TODO show user somehow
           log.Debug("Rest error: " + e.Error)
         }
-        c.AbortWithStatus(404)
-        return
+        foundErrors = true
       }
+    }
 
-      /*
+    if deleteStatus == 200 {
       var deleteGrants aap.DeleteGrantsResponse
-      _, restErr = bulky.Unmarshal(0, deleteResponses, &deleteGrants)
+      _, restErr := bulky.Unmarshal(0, deleteResponses, &deleteGrants)
       if restErr != nil {
         for _,e := range restErr {
           // TODO show user somehow
           log.Debug("Rest error: " + e.Error)
         }
-        c.AbortWithStatus(404)
-        return
+        foundErrors = true
       }
-      */
 
+    }
+
+    if !foundErrors {
       c.Redirect(http.StatusFound, fmt.Sprintf("/access/grant?receiver=%s&publisher=%s", receiver, publisher))
       c.Abort()
       return
