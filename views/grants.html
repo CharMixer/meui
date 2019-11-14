@@ -43,21 +43,47 @@
       {{ range $key, $publish := .grantPublishes }}
         <input type="hidden" name="Grants[{{ $key }}].Scope" value="{{ $publish.Scope }}" />
         <a class="ui blue ribbon label" style="margin-bottom:10px">{{ $publish.Scope }}</a> {{ $publish.Title }}
-
         <div class="three fields">
           <div class="field">
             <label>Enable</label>
             <div class="ui toggle checkbox">
-              <input type="checkbox" {{ if index $hasGrantsMap $publish.Scope }} checked {{ end }} class="enable" name="Grants[{{ $key }}].Enabled" tabindex="0">
+              <input
+                 type="checkbox"
+                 {{ with index $hasGrantsMap $publish.Scope }}
+                   {{ if .Granted }}
+                     checked
+                   {{ end }}
+                 {{ end }}
+                 class="enable"
+                 name="Grants[{{ $key }}].Enabled"
+                 tabindex="0" />
             </div>
           </div>
           <div class="field">
             <label>Start date</label>
-            <input type="date" class="startdate" name="Grants[{{ $key }}].StartDate" placeholder="From">
+            <input
+              type="date"
+              class="startdate"
+              name="Grants[{{ $key }}].StartDate"
+              {{ with index $hasGrantsMap $publish.Scope }}
+                {{ if .Nbf }}
+                  value="{{ .Nbf }}"
+                {{ end }}
+              {{ end }}
+              placeholder="From">
           </div>
           <div class="field">
             <label>End date</label>
-            <input type="date" class="enddate" name="Grants[{{ $key }}].EndDate" placeholder="To">
+            <input
+              type="date"
+              class="enddate"
+              name="Grants[{{ $key }}].EndDate"
+              {{ with index $hasGrantsMap $publish.Scope }}
+                {{ if .Exp }}
+                  value="{{ .Exp }}"
+                {{ end }}
+              {{ end }}
+              placeholder="To" />
           </div>
         </div>
         <div class="ui divider"></div>
@@ -102,16 +128,43 @@
         <div class="field">
           <label>Enable</label>
           <div class="ui toggle checkbox">
-            <input type="checkbox" {{ if index $hasGrantsMap $publish.Scope }} checked {{ end }} class="enable" name="Grants[{{ $key }}].Enabled" tabindex="0">
+            <input
+               type="checkbox"
+               {{ with index $hasGrantsMap $publish.Scope }}
+                 {{ if .Granted }}
+                   checked
+                 {{ end }}
+               {{ end }}
+               class="enable"
+               name="Grants[{{ $key }}].Enabled"
+               tabindex="0" />
           </div>
         </div>
         <div class="field">
           <label>Start date</label>
-          <input type="date" class="startdate" name="Grants[{{ $key }}].StartDate" placeholder="From">
+          <input
+            type="date"
+            class="startdate"
+            name="Grants[{{ $key }}].StartDate"
+            {{ with index $hasGrantsMap $publish.Scope }}
+              {{ if .Nbf }}
+                value="{{ .Nbf }}"
+              {{ end }}
+            {{ end }}
+            placeholder="From">
         </div>
         <div class="field">
           <label>End date</label>
-          <input type="date" class="enddate" name="Grants[{{ $key }}].EndDate" placeholder="To">
+          <input
+            type="date"
+            class="enddate"
+            name="Grants[{{ $key }}].EndDate"
+            {{ with index $hasGrantsMap $publish.Scope }}
+              {{ if .Exp }}
+                value="{{ .Exp }}"
+              {{ end }}
+            {{ end }}
+            placeholder="To" />
         </div>
       </div>
       <div class="ui divider"></div>
@@ -170,7 +223,9 @@
 
     $("input.startdate").each(function(i,e) {
       let isoDate = new Date().toISOString().substring(0,10)
-      $(e).val(isoDate);
+      if ( $(e).val() == "" ) {
+        $(e).val(isoDate);
+      }
       $(e).prop("min", isoDate);
     });
 
