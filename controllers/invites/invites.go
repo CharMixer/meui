@@ -52,6 +52,11 @@ func ShowInvites(env *environment.State) gin.HandlerFunc {
       return
     }
 
+    if status == http.StatusForbidden {
+      c.AbortWithStatus(http.StatusForbidden)
+      return
+    }
+
     if status != 200 {
       log.Debug("Failed to get 200 from " + callUrl);
       c.AbortWithStatus(http.StatusInternalServerError)
