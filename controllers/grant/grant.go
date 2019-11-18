@@ -2,6 +2,7 @@ package grant
 
 import (
   "net/http"
+  "time"
   "github.com/sirupsen/logrus"
   "github.com/gin-gonic/gin"
   "github.com/gorilla/csrf"
@@ -31,6 +32,12 @@ type formInput struct {
     StartDate      string
     EndDate        string
   }
+}
+
+type uiGrant struct {
+  Nbf string
+  Exp string
+  Granted bool
 }
 
 func ShowGrants(env *environment.State) gin.HandlerFunc {
@@ -140,9 +147,24 @@ func ShowGrants(env *environment.State) gin.HandlerFunc {
       return
     }
 
-    var hasGrantsMap = make(map[string]bool, len(grants))
+    var hasGrantsMap = make(map[string]uiGrant, len(grants))
     for _,g := range grants {
-      hasGrantsMap[g.Scope] = true
+
+      var nbf string
+      if g.NotBefore != 0 {
+        nbf = time.Unix(g.NotBefore, 0).Format("2006-01-02")
+      }
+
+      var exp string
+      if g.Expire != 0 {
+        exp = time.Unix(g.Expire, 0).Format("2006-01-02")
+      }
+
+      hasGrantsMap[g.Scope] = uiGrant{
+        Nbf: nbf,
+        Exp: exp,
+        Granted: true,
+      }
     }
 
     // fetch resourceservers
@@ -235,13 +257,38 @@ func SubmitGrants(env *environment.State) gin.HandlerFunc {
 
     var createGrantsRequests []aap.CreateGrantsRequest
     var deleteGrantsRequests []aap.DeleteGrantsRequest
+    fmt.Printf("%#v\n\n", form)
     for _,grant := range form.Grants {
+      layout := "2006-01-02"
+
+      var nbf int64
+      if grant.StartDate != "" {
+        nbfTime, err := time.Parse(layout, grant.StartDate)
+        if err != nil {
+           panic(err)
+        }
+
+        nbf = nbfTime.Unix()
+      }
+
+      var exp int64
+      if grant.EndDate != "" {
+        expTime, err := time.Parse(layout, grant.EndDate)
+        if err != nil {
+           panic(err)
+        }
+
+        exp = expTime.Unix()
+      }
+
       if grant.Enabled {
         createGrantsRequests = append(createGrantsRequests, aap.CreateGrantsRequest{
           Identity: receiver,
           Scope: grant.Scope,
           Publisher: publisher,
           OnBehalfOf: publisher, // TODO FIXME this should be something you can choose from the gui (data scoped access rights)
+          NotBefore: nbf,
+          Expire: exp,
         })
         continue;
       }
@@ -251,29 +298,37 @@ func SubmitGrants(env *environment.State) gin.HandlerFunc {
         Identity: receiver,
         Scope: grant.Scope,
         Publisher: publisher,
+        OnBehalfOf: publisher, // TODO FIXME this should be something you can choose from the gui (data scoped access rights)
       })
     }
 
     url := config.GetString("aap.public.url") + config.GetString("aap.public.endpoints.grants")
 
-    createStatus, createResponses, err := aap.CreateGrants(aapClient, url, createGrantsRequests)
-    if err != nil {
-      log.Debug(err.Error())
-      c.AbortWithStatus(404)
-      return
+    var createStatus int
+    var createResponses []bulky.Response
+    if createGrantsRequests != nil {
+      createStatus, createResponses, err = aap.CreateGrants(aapClient, url, createGrantsRequests)
+      if err != nil {
+        log.Debug(err.Error())
+        c.AbortWithStatus(404)
+        return
+      }
     }
 
-    /*
-    deleteStatus, deleteResponses, err := aap.DeleteGrants(aapClient, url, deleteGrantsRequests)
-
-    if err != nil {
-      log.Debug(err.Error())
-      c.AbortWithStatus(404)
-      return
+    var deleteStatus int
+    var deleteResponses []bulky.Response
+    if deleteGrantsRequests != nil {
+      deleteStatus, deleteResponses, err = aap.DeleteGrants(aapClient, url, deleteGrantsRequests)
+      if err != nil {
+        log.Debug(err.Error())
+        c.AbortWithStatus(404)
+        return
+      }
     }
-    */
 
-    if createStatus == 200 /* && deleteStatus == 200 */ {
+    foundErrors := false
+
+    if createStatus == 200 {
       var createGrants aap.CreateGrantsResponse
       _, restErr := bulky.Unmarshal(0, createResponses, &createGrants)
       if restErr != nil {
@@ -281,23 +336,24 @@ func SubmitGrants(env *environment.State) gin.HandlerFunc {
           // TODO show user somehow
           log.Debug("Rest error: " + e.Error)
         }
-        c.AbortWithStatus(404)
-        return
+        foundErrors = true
       }
+    }
 
-      /*
+    if deleteStatus == 200 {
       var deleteGrants aap.DeleteGrantsResponse
-      _, restErr = bulky.Unmarshal(0, deleteResponses, &deleteGrants)
+      _, restErr := bulky.Unmarshal(0, deleteResponses, &deleteGrants)
       if restErr != nil {
         for _,e := range restErr {
           // TODO show user somehow
           log.Debug("Rest error: " + e.Error)
         }
-        c.AbortWithStatus(404)
-        return
+        foundErrors = true
       }
-      */
 
+    }
+
+    if !foundErrors {
       c.Redirect(http.StatusFound, fmt.Sprintf("/access/grant?receiver=%s&publisher=%s", receiver, publisher))
       c.Abort()
       return
