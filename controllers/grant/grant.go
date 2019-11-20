@@ -195,7 +195,9 @@ func ShowGrants(env *environment.State) gin.HandlerFunc {
       "links": []map[string]string{
         {"href": "/public/css/dashboard.css"},
       },
-
+      "id": identity.Id,
+      "user": identity.Username,
+      "name": identity.Name,
       "title": "Grants",
       "hasGrantsMap": hasGrantsMap,
       "grantPublishes": grantPublishes,

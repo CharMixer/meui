@@ -62,9 +62,10 @@ func ShowInvitesSend(env *environment.State) gin.HandlerFunc {
             {"href": "/public/css/dashboard.css"},
           },
           csrf.TemplateTag: csrf.TemplateField(c.Request),
+          "user": identity.Username,
+          "name": identity.Name,
           "id": invite.Id,
           "email": invite.Email,
-          //"user": invite.Username,
         })
         return
       }

@@ -31,12 +31,22 @@ func ShowRole(env *environment.State) gin.HandlerFunc {
       "func": "ShowRole",
     })
 
+    identity := app.GetIdentity(c)
+    if identity == nil {
+      log.Debug("Missing Identity")
+      c.AbortWithStatus(http.StatusForbidden)
+      return
+    }
+
     c.HTML(http.StatusOK, "role.html", gin.H{
       "title": "Create new role",
       "links": []map[string]string{
         {"href": "/public/css/dashboard.css"},
       },
       csrf.TemplateTag: csrf.TemplateField(c.Request),
+      "id": identity.Id,
+      "user": identity.Username,
+      "name": identity.Name,
     })
 
   }
