@@ -2,6 +2,7 @@ package profiles
 
 import (
   "net/http"
+  "net/url"
   "github.com/sirupsen/logrus"
   "github.com/gin-gonic/gin"
 
@@ -25,6 +26,17 @@ func ShowProfile(env *environment.State) gin.HandlerFunc {
       return
     }
 
+    publicProfileUrl, err := url.Parse(config.GetString("idpui.public.url") + config.GetString("idpui.public.endpoints.profile"))
+    if err != nil {
+      log.Debug(err.Error())
+      c.AbortWithStatus(http.StatusInternalServerError)
+      return
+    }
+
+    q := publicProfileUrl.Query()
+    q.Add("id", identity.Id)
+    publicProfileUrl.RawQuery = q.Encode()
+
     c.HTML(http.StatusOK, "profile.html", gin.H{
       "title": "Profile",
       "links": []map[string]string{
@@ -42,6 +54,7 @@ func ShowProfile(env *environment.State) gin.HandlerFunc {
       "profileDeleteUrl": config.GetString("idpui.public.url") + config.GetString("idpui.public.endpoints.delete"),
       "setupTotpUrl": config.GetString("idpui.public.url") + config.GetString("idpui.public.endpoints.totp"),
       "logoutUrl": config.GetString("meui.public.url") + config.GetString("meui.public.endpoints.logout"),
+      "publicProfileUrl": publicProfileUrl.String(),
     })
     return
   }
