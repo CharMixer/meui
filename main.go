@@ -197,8 +197,6 @@ func serve(env *environment.State) {
     // FIXME: Must be public accessible until we figure out to enfore that only hydra client may make callbacks
     ep.GET("/callback", callbacks.ExchangeAuthorizationCodeCallback(env) )
 
-    ep.GET("/profile", profiles.ShowPublicProfile(env) )
-
     ep.GET("/seeyoulater", profiles.ShowSeeYouLater(env) )
   }
 
