@@ -94,6 +94,7 @@ func ShowInvite(env *environment.State) gin.HandlerFunc {
         {"href": "/public/css/dashboard.css"},
       },
       csrf.TemplateTag: csrf.TemplateField(c.Request),
+      "provider": config.GetString("provider.name"),
       "id": identity.Id,
       "user": identity.Username,
       "name": identity.Name,

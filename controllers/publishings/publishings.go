@@ -93,7 +93,7 @@ func ShowPublishings(env *environment.State) gin.HandlerFunc {
       "links": []map[string]string{
         {"href": "/public/css/dashboard.css"},
       },
-
+      "provider": config.GetString("provider.name"),
       "title": "Publishings",
       "receiver": receiver,
       "publishings": publishings,

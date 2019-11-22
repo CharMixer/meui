@@ -82,6 +82,7 @@ func ShowProfileEdit(env *environment.State) gin.HandlerFunc {
       },
       csrf.TemplateTag: csrf.TemplateField(c.Request),
       "profileEditUrl": config.GetString("meui.public.url") + config.GetString("meui.public.endpoints.edit"),
+      "provider": config.GetString("provider.name"),
       "user": identity.Id,
       "displayName": displayName,
       "errorDisplayName": errorDisplayName,
