@@ -45,7 +45,7 @@ func ShowGrants(env *environment.State) gin.HandlerFunc {
 
     log := c.MustGet(environment.LogKey).(*logrus.Entry)
     log = log.WithFields(logrus.Fields{
-      "func": "ShowAccess",
+      "func": "ShowGrants",
     })
 
     session := sessions.Default(c)
@@ -215,7 +215,7 @@ func SubmitGrants(env *environment.State) gin.HandlerFunc {
   fn := func(c *gin.Context) {
     log := c.MustGet(environment.LogKey).(*logrus.Entry)
     log = log.WithFields(logrus.Fields{
-      "func": "ShowAccess",
+      "func": "SubmitGrants",
     })
 
     session := sessions.Default(c)

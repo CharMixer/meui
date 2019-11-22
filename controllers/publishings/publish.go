@@ -33,7 +33,7 @@ func ShowPublish(env *environment.State) gin.HandlerFunc {
 
     log := c.MustGet(environment.LogKey).(*logrus.Entry)
     log = log.WithFields(logrus.Fields{
-      "func": "ShowAccess",
+      "func": "ShowPublish",
     })
 
     session := sessions.Default(c)
@@ -87,7 +87,7 @@ func SubmitPublish(env *environment.State) gin.HandlerFunc {
   fn := func(c *gin.Context) {
     log := c.MustGet(environment.LogKey).(*logrus.Entry)
     log = log.WithFields(logrus.Fields{
-      "func": "ShowAccess",
+      "func": "SubmitPublish",
     })
 
     session := sessions.Default(c)
