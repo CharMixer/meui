@@ -166,7 +166,9 @@ $(function(){
 {{ define "htmlend" }}
   </body>
 </html>
-{{ end }}{{ define "input.email" }}
+{{ end }}
+
+{{ define "input.email" }}
 {{if .errorEmail}}
   <div class="required field {{if .errorEmail}}error{{end}}">
     <div class="ui right labeled left icon input focus">
