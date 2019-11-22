@@ -74,7 +74,7 @@ func ShowPublish(env *environment.State) gin.HandlerFunc {
       "links": []map[string]string{
         {"href": "/public/css/dashboard.css"},
       },
-
+      "provider": config.GetString("provider.name"),
       "title": "Publish scope",
       "receiver": receiver,
     })
