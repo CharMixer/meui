@@ -25,7 +25,7 @@ func ShowPublishings(env *environment.State) gin.HandlerFunc {
 
     log := c.MustGet(environment.LogKey).(*logrus.Entry)
     log = log.WithFields(logrus.Fields{
-      "func": "ShowAccess",
+      "func": "ShowPublishings",
     })
 
     session := sessions.Default(c)
