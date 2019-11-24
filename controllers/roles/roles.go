@@ -125,6 +125,7 @@ func ShowRoles(env *environment.State) gin.HandlerFunc {
       "links": []map[string]string{
         {"href": "/public/css/dashboard.css"},
       },
+      "provider": config.GetString("provider.name"),
       "id": identity.Id,
       "user": identity.Username,
       "name": identity.Name,

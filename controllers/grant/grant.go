@@ -45,7 +45,7 @@ func ShowGrants(env *environment.State) gin.HandlerFunc {
 
     log := c.MustGet(environment.LogKey).(*logrus.Entry)
     log = log.WithFields(logrus.Fields{
-      "func": "ShowAccess",
+      "func": "ShowGrants",
     })
 
     session := sessions.Default(c)
@@ -195,6 +195,7 @@ func ShowGrants(env *environment.State) gin.HandlerFunc {
       "links": []map[string]string{
         {"href": "/public/css/dashboard.css"},
       },
+      "provider": config.GetString("provider.name"),
       "id": identity.Id,
       "user": identity.Username,
       "name": identity.Name,
@@ -215,7 +216,7 @@ func SubmitGrants(env *environment.State) gin.HandlerFunc {
   fn := func(c *gin.Context) {
     log := c.MustGet(environment.LogKey).(*logrus.Entry)
     log = log.WithFields(logrus.Fields{
-      "func": "ShowAccess",
+      "func": "SubmitGrants",
     })
 
     session := sessions.Default(c)
