@@ -88,6 +88,7 @@ func ShowRoleDelete(env *environment.State) gin.HandlerFunc {
       csrf.TemplateTag: csrf.TemplateField(c.Request),
       "submitUrl": submitUrl,
       "role": role,
+      "provider": config.GetString("provider.name"),
     })
 
   }

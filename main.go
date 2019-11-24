@@ -39,6 +39,7 @@ import (
   "github.com/charmixer/meui/controllers/roles"
   "github.com/charmixer/meui/controllers/shadows"
   "github.com/charmixer/meui/controllers/ajax"
+  "github.com/charmixer/meui/controllers/consents"
 )
 
 const appName = "meui"
@@ -199,8 +200,6 @@ func serve(env *environment.State) {
     // FIXME: Must be public accessible until we figure out to enfore that only hydra client may make callbacks
     ep.GET("/callback", callbacks.ExchangeAuthorizationCodeCallback(env) )
 
-    ep.GET("/profile", profiles.ShowPublicProfile(env) )
-
     ep.GET("/seeyoulater", profiles.ShowSeeYouLater(env) )
   }
 
@@ -244,6 +243,10 @@ func serve(env *environment.State) {
     ep.POST( "/access/grant",           grant.SubmitGrants(env))
     ep.GET(  "/access/new",             access.ShowAccessNew(env))
     ep.POST( "/access/new",             access.SubmitAccessNew(env))
+
+    // Consents
+    ep.GET(  "/consents",               consents.ShowConsents(env))
+    ep.POST( "/consents",               consents.SubmitConsents(env))
 
     // Subscriptions
     ep.GET(  "/subscriptions",          subscriptions.ShowSubscriptions(env))

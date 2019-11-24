@@ -82,6 +82,7 @@ func ShowProfileEdit(env *environment.State) gin.HandlerFunc {
       },
       csrf.TemplateTag: csrf.TemplateField(c.Request),
       "profileEditUrl": config.GetString("meui.public.url") + config.GetString("meui.public.endpoints.edit"),
+      "provider": config.GetString("provider.name"),
       "user": identity.Id,
       "displayName": displayName,
       "errorDisplayName": errorDisplayName,
@@ -197,23 +198,27 @@ func SubmitProfileEdit(env *environment.State) gin.HandlerFunc {
       Id: identity.Id,
       Name: form.Name,
     }}
-    _, updatedHumans, err := idp.UpdateHumans(idpClient, config.GetString("idp.public.url") + config.GetString("idp.public.endpoints.humans.collection"), identityRequest)
+    status, responses, err := idp.UpdateHumans(idpClient, config.GetString("idp.public.url") + config.GetString("idp.public.endpoints.humans.collection"), identityRequest)
     if err != nil {
       log.Debug(err.Error())
       c.AbortWithStatus(http.StatusInternalServerError)
       return
     }
 
-    if updatedHumans == nil {
+    if status == http.StatusForbidden {
+      c.AbortWithStatus(http.StatusForbidden)
+      return
+    }
+
+    if status != http.StatusOK {
       log.Debug("Update failed. Hint: Failed to execute UpdateHumansRequest")
       c.AbortWithStatus(http.StatusInternalServerError)
       return
     }
 
-
     var resp idp.UpdateHumansResponse
-    status, _ := bulky.Unmarshal(0, updatedHumans, &resp)
-    if status == 200 {
+    status, _ = bulky.Unmarshal(0, responses, &resp)
+    if status == http.StatusOK {
 
       updatedHuman := resp
 

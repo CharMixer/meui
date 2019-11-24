@@ -2,14 +2,17 @@ package invites
 
 import (
   "strings"
+  "time"
   "net/http"
   "reflect"
-  "strconv"
   "gopkg.in/go-playground/validator.v9"
   "github.com/sirupsen/logrus"
   "github.com/gin-gonic/gin"
   "github.com/gorilla/csrf"
   "github.com/gin-contrib/sessions"
+
+  "github.com/go-playground/form"
+
   idp "github.com/charmixer/idp/client"
 
   "github.com/charmixer/meui/app"
@@ -20,9 +23,9 @@ import (
 )
 
 type inviteForm struct {
-  Email     string `form:"email" binding:"required" validate:"required,email"`
-  Username  string `form:"username"`
-  ExpiresAt int64 `form:"exp" binding:"numeric" validate:"numeric"`
+  Email     string `binding:"required" validate:"required,email"`
+  Username  string
+  ExpiresAt string
 }
 
 func ShowInvite(env *environment.State) gin.HandlerFunc {
@@ -45,22 +48,18 @@ func ShowInvite(env *environment.State) gin.HandlerFunc {
     // Retain the values that was submittet, except passwords ?!
     var username string
     var email string
-    var exp string
     rf := session.Flashes("invite.fields")
     if len(rf) > 0 {
       fields := rf[0].(map[string][]string)
       for k, v := range fields {
-        if k == "email" && len(v) > 0 {
+        if k == "Email" && len(v) > 0 {
           email = strings.Join(v, ", ")
         }
 
-        if k == "username" && len(v) > 0 {
+        if k == "Username" && len(v) > 0 {
           username = strings.Join(v, ", ")
         }
 
-        if k == "exp" && len(v) > 0 {
-          exp = strings.Join(v, ", ")
-        }
       }
     }
 
@@ -78,17 +77,14 @@ func ShowInvite(env *environment.State) gin.HandlerFunc {
       errorsMap := errors[0].(map[string][]string)
       for k, v := range errorsMap {
 
-        if k == "email" && len(v) > 0 {
+        if k == "Email" && len(v) > 0 {
           errorEmail = strings.Join(v, ", ")
         }
 
-        if k == "username" && len(v) > 0 {
+        if k == "Username" && len(v) > 0 {
           errorUsername = strings.Join(v, ", ")
         }
 
-        if k == "exp" && len(v) > 0 {
-          errorExp = strings.Join(v, ", ")
-        }
       }
     }
 
@@ -98,12 +94,12 @@ func ShowInvite(env *environment.State) gin.HandlerFunc {
         {"href": "/public/css/dashboard.css"},
       },
       csrf.TemplateTag: csrf.TemplateField(c.Request),
+      "provider": config.GetString("provider.name"),
       "id": identity.Id,
       "user": identity.Username,
       "name": identity.Name,
-      "username": username,
-      "email": email,
-      "exp": exp,
+      "Username": username,
+      "Email": email,
       "errorEmail": errorEmail,
       "errorUsername": errorUsername,
       "errorExp": errorExp,
@@ -120,13 +116,17 @@ func SubmitInvite(env *environment.State) gin.HandlerFunc {
       "func": "SubmitInvite",
     })
 
-    var form inviteForm
-    err := c.Bind(&form)
+    c.Request.ParseForm()
+
+    var input inviteForm
+    err := form.NewDecoder().Decode(&input, c.Request.Form)
     if err != nil {
-      c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-      c.Abort()
+      log.Debug(err.Error())
+      c.AbortWithStatus(http.StatusBadRequest)
       return
     }
+
+    log.Debug(input)
 
     identity := app.GetIdentity(c)
     if identity == nil {
@@ -139,9 +139,8 @@ func SubmitInvite(env *environment.State) gin.HandlerFunc {
 
     // Save values if submit fails
     fields := make(map[string][]string)
-    fields["email"] = append(fields["email"], form.Email)
-    fields["username"] = append(fields["username"], form.Username)
-    fields["exp"] = append(fields["exp"], strconv.FormatInt(form.ExpiresAt, 10))
+    fields["Email"] = append(fields["Email"], input.Email)
+    fields["Username"] = append(fields["Username"], input.Username)
 
     session.AddFlash(fields, "invite.fields")
     err = session.Save()
@@ -152,7 +151,7 @@ func SubmitInvite(env *environment.State) gin.HandlerFunc {
     errors := make(map[string][]string)
     validate := validator.New()
     validate.RegisterValidation("notblank", validators.NotBlank)
-    err = validate.Struct(form)
+    err = validate.Struct(input)
     if err != nil {
 
       // Validation syntax is invalid
@@ -162,7 +161,7 @@ func SubmitInvite(env *environment.State) gin.HandlerFunc {
         return
       }
 
-      reflected := reflect.ValueOf(form) // Use reflector to reverse engineer struct
+      reflected := reflect.ValueOf(input) // Use reflector to reverse engineer struct
       for _, err := range err.(validator.ValidationErrors){
 
         // Attempt to find field by name and get json tag name
@@ -171,24 +170,24 @@ func SubmitInvite(env *environment.State) gin.HandlerFunc {
 
         // If form tag doesn't exist, use lower case of name
         if name = field.Tag.Get("form"); name == ""{
-          name = strings.ToLower(err.StructField())
+          name = err.StructField()
         }
 
         switch err.Tag() {
         case "required":
-            errors[name] = append(errors[name], "Field is required")
+            errors[name] = append(errors[name], "Required")
             break
         case "email":
-            errors[name] = append(errors[name], "Field must be a valid email")
+            errors[name] = append(errors[name], "Invalid E-mail")
             break
         case "eqfield":
-            errors[name] = append(errors[name], "Field should be equal to the "+err.Param())
+            errors[name] = append(errors[name], "Should be equal to the "+err.Param())
             break
         case "notblank":
-          errors[name] = append(errors[name], "Field is not allowed to be blank")
+          errors[name] = append(errors[name], "Blank not allowed")
           break
         default:
-            errors[name] = append(errors[name], "Field is invalid")
+            errors[name] = append(errors[name], "Invalid")
             break
         }
       }
@@ -216,14 +215,25 @@ func SubmitInvite(env *environment.State) gin.HandlerFunc {
 
     idpClient := app.IdpClientUsingAuthorizationCode(env, c)
 
+    var expiresAt int64 = 0
+    if input.ExpiresAt != "" {
+      expiresAtTime, err := time.Parse("2006-01-02", input.ExpiresAt)
+      if err != nil {
+        log.Debug(err.Error())
+        c.AbortWithStatus(http.StatusInternalServerError)
+        return
+      }
+      expiresAt = expiresAtTime.Unix()
+    }
+
     inviteRequest := []idp.CreateInvitesRequest{{
-      Email: form.Email,
-      Username: form.Username,
-      ExpiresAt: form.ExpiresAt,
+      Email: input.Email,
+      Username: input.Username,
+      ExpiresAt: expiresAt,
     }}
     status, invite, err := idp.CreateInvites(idpClient, config.GetString("idp.public.url") + config.GetString("idp.public.endpoints.invites.collection"), inviteRequest)
     if err != nil {
-      log.WithFields(logrus.Fields{ "email":form.Email, "username":form.Username, "exp":form.ExpiresAt }).Debug("Invite failed")
+      log.WithFields(logrus.Fields{ "email":input.Email, "username":input.Username, "exp":input.ExpiresAt }).Debug("Invite failed")
       c.AbortWithStatus(http.StatusInternalServerError)
       return
     }
