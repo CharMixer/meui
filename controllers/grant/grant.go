@@ -260,7 +260,6 @@ func SubmitGrants(env *environment.State) gin.HandlerFunc {
 
     var createGrantsRequests []aap.CreateGrantsRequest
     var deleteGrantsRequests []aap.DeleteGrantsRequest
-    fmt.Printf("%#v\n\n", form)
     for _,grant := range form.Grants {
       layout := "2006-01-02"
 

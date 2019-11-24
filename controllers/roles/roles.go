@@ -25,6 +25,7 @@ type RoleTemplate struct {
   GrantsUrl string
   SubscriptionsUrl string
   DeleteUrl string
+  ShadowsUrl string
 }
 
 func ShowRoles(env *environment.State) gin.HandlerFunc {
@@ -71,6 +72,13 @@ func ShowRoles(env *environment.State) gin.HandlerFunc {
       return
     }
 
+    shadowsUrl, err := url.Parse(config.GetString("meui.public.url") + config.GetString("meui.public.endpoints.shadows.collection"))
+    if err != nil {
+      log.Debug(err.Error())
+      c.AbortWithStatus(http.StatusInternalServerError)
+      return
+    }
+
     var uiCreatedRoles []RoleTemplate
 
     var roles idp.ReadRolesResponse
@@ -89,12 +97,18 @@ func ShowRoles(env *environment.State) gin.HandlerFunc {
         q.Add("id", role.Id)
         _deleteUrl.RawQuery = q.Encode()
 
+        _shadowsUrl := *shadowsUrl
+        q = _shadowsUrl.Query()
+        q.Add("role", role.Id)
+        _shadowsUrl.RawQuery = q.Encode()
+
         uiRole := RoleTemplate{
           Id:               role.Id,
           Name:             role.Name,
           Description:      role.Description,
           GrantsUrl:        _grantsUrl.String(),
           DeleteUrl:        _deleteUrl.String(),
+          ShadowsUrl:       _shadowsUrl.String(),
         }
         uiCreatedRoles = append(uiCreatedRoles, uiRole)
 
