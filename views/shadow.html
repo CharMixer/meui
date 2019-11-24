@@ -1,0 +1,81 @@
+{{ template "htmlbegin" . }}
+{{ template "dashboardbegin" . }}
+
+  <div class="ui segments">
+
+    <div class="ui segment">
+
+    <form class="ui form" action="{{ .resourceServerUrl }}" method="post">
+      {{ .csrfField }}
+      <input type="hidden" name="Role" value="{{ .role }}">
+
+      <div class="ui teal ribbon label">
+        <i class="user outline icon"></i> Create
+      </div>
+      <span>Create a shadow</span>
+
+      <div class="ui hidden divider"></div>
+
+      <div class="required field">
+        <label>Identity</label>
+        <div class="ui fluid search selection dropdown">
+        <input type="hidden" name="Identity">
+        <i class="dropdown icon"></i>
+        <div class="default text">Select Country</div>
+        <div class="menu">
+        </div>
+      </div>
+
+      <div class="two fields">
+        <div class="required field">
+          <label>Start date</label>
+          <input
+            type="date"
+            class="startdate"
+            name="StartDate"
+            class="startdate"
+            placeholder="From">
+        </div>
+        <div class="field">
+          <label>End date</label>
+          <input
+            type="date"
+            class="enddate"
+            name="EndDate"
+            placeholder="To" />
+        </div>
+      </div>
+
+      <div class="ui hidden divider"></div>
+
+      <button class="ui green button" type="submit"><i class="save icon"></i> Create Role</button>
+    </form>
+
+    </div>
+
+  </div>
+
+{{ template "dashboardend" . }}
+
+<script type="text/javascript">
+  $(function(){
+    $('.ui.dropdown').dropdown({
+      apiSettings: {
+        // this url parses query server side and returns filtered results
+        url: '/ajax/identities?q={query}'
+      },
+      minCharacters : 2
+    });
+
+
+    $("input.startdate").each(function(i,e) {
+      let isoDate = new Date().toISOString().substring(0,10)
+      if ( $(e).val() == "" ) {
+        $(e).val(isoDate);
+      }
+      $(e).prop("min", isoDate);
+    });
+  });
+</script>
+
+{{ template "htmlend" . }}

@@ -1,0 +1,43 @@
+{{ template "htmlbegin" . }}
+{{ template "dashboardbegin" . }}
+
+<a href="{{ .createUrl }}" style="margin-top:5px" class="ui purple label"><i class="user outline icon"></i> Create shadow</a>
+
+  <div class="ui segments">
+
+    {{ if .created }}
+
+      <div class="ui segment">
+      {{range $shadow := .created.Shadows}}
+
+        <div class="ui teal ribbon label">
+          <i class="user outline icon"></i> {{ $shadow.Id }}
+        </div>
+        <span></span>
+
+        <div class="ui list">
+          <a href="{{ $shadow.DeleteUrl }}" style="margin-top:5px" class="ui red label"><i class="power icon"></i> Delete shadow</a>
+        </div>
+
+      {{ end }}
+      </div>
+
+    {{ else }}
+
+      <div class="ui segment">
+        None found.
+      </div>
+
+    {{ end }}
+
+  </div>
+
+{{ template "dashboardend" . }}
+
+<script type="text/javascript">
+  $(function(){
+
+  });
+</script>
+
+{{ template "htmlend" . }}
