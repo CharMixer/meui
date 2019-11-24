@@ -234,7 +234,7 @@ func SubmitSubscriptions(env *environment.State) gin.HandlerFunc {
       })
     }
 
-    url := config.GetString("aap.public.url") + config.GetString("aap.public.endpoints.subscriptions")
+    url := config.GetString("aap.public.url") + config.GetString("aap.public.endpoints.subscriptions.collection")
 
     status, responses, err := aap.CreateSubscriptions(aapClient, url, createSubscriptionsRequests)
     if err != nil {
