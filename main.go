@@ -37,6 +37,8 @@ import (
   "github.com/charmixer/meui/controllers/subscriptions"
   "github.com/charmixer/meui/controllers/publishings"
   "github.com/charmixer/meui/controllers/roles"
+  "github.com/charmixer/meui/controllers/shadows"
+  "github.com/charmixer/meui/controllers/ajax"
 )
 
 const appName = "meui"
@@ -258,6 +260,14 @@ func serve(env *environment.State) {
     ep.POST( "/roles/delete",           roles.SubmitRoleDelete(env))
     ep.GET(  "/role",                   roles.ShowRole(env))
     ep.POST( "/role",                   roles.SubmitRole(env))
+
+    // Shadows
+    ep.GET(  "/shadows",                shadows.ShowShadows(env))
+    ep.GET(  "/shadow",                 shadows.ShowShadow(env))
+    ep.POST( "/shadow",                 shadows.SubmitShadow(env))
+
+    // Shadows
+    ep.GET(  "/ajax/identities",        ajax.GetIdentities(env))
 
   }
 
