@@ -23,6 +23,11 @@ import (
 func RequireIdentity(env *environment.State) gin.HandlerFunc {
   fn := func(c *gin.Context) {
 
+    log := c.MustGet(environment.LogKey).(*logrus.Entry)
+    log = log.WithFields(logrus.Fields{
+      "func": "RequireIdentity",
+    })
+
     var idToken *oidc.IDToken = IdToken(c)
     if idToken == nil {
       c.AbortWithStatus(http.StatusUnauthorized)
@@ -41,6 +46,7 @@ func RequireIdentity(env *environment.State) gin.HandlerFunc {
     identityRequest := []idp.ReadHumansRequest{ {Id: idToken.Subject} }
     status, responses, err := idp.ReadHumans(idpClient, config.GetString("idp.public.url") + config.GetString("idp.public.endpoints.humans.collection"), identityRequest)
     if err != nil {
+      log.WithFields(logrus.Fields{"error": err}).Debug("Unable to call idp.ReadHumans")
       c.AbortWithStatus(http.StatusInternalServerError)
       return
     }
