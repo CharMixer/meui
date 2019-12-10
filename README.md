@@ -1,5 +1,5 @@
-# Golang Identity Provider Frontend
+# ME UI
 
-A simple user interface for performing sso actions like signon, change password, registering for account etc.
+Application exemplifying the use of IDP and AAP backends.
 
-Test
+This application also exemplifies which endpoints from IDP and AAP can safely be exposed to third party implementors.
