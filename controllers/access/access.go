@@ -11,10 +11,10 @@ import (
 
   bulky "github.com/charmixer/bulky/client"
 
-  aap "github.com/charmixer/aap/client"
+  aap "github.com/opensentry/aap/client"
 
-  "github.com/charmixer/meui/config"
-  "github.com/charmixer/meui/environment"
+  "github.com/opensentry/meui/config"
+  "github.com/opensentry/meui/environment"
 )
 
 type newAccessForm struct {

@@ -8,8 +8,8 @@ import (
   "github.com/gin-contrib/sessions"
   oidc "github.com/coreos/go-oidc"
 
-  "github.com/charmixer/meui/config"
-  "github.com/charmixer/meui/environment"
+  "github.com/opensentry/meui/config"
+  "github.com/opensentry/meui/environment"
 )
 
 func ExchangeAuthorizationCodeCallback(env *environment.State) gin.HandlerFunc {

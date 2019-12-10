@@ -9,17 +9,17 @@ import (
   "github.com/gin-gonic/gin"
   "github.com/gorilla/csrf"
   "github.com/gin-contrib/sessions"
-  idp "github.com/charmixer/idp/client"
+  idp "github.com/opensentry/idp/client"
 
   "github.com/go-playground/form"
 
   bulky "github.com/charmixer/bulky/client"
 
-  "github.com/charmixer/meui/app"
-  "github.com/charmixer/meui/config"
-  "github.com/charmixer/meui/environment"
-  "github.com/charmixer/meui/utils"
-  "github.com/charmixer/meui/validators"
+  "github.com/opensentry/meui/app"
+  "github.com/opensentry/meui/config"
+  "github.com/opensentry/meui/environment"
+  "github.com/opensentry/meui/utils"
+  "github.com/opensentry/meui/validators"
 )
 
 type formInput struct {

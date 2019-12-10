@@ -8,9 +8,9 @@ import (
   "golang.org/x/oauth2"
   oidc "github.com/coreos/go-oidc"
   bulky "github.com/charmixer/bulky/client"
-  idp "github.com/charmixer/idp/client"
-  "github.com/charmixer/meui/config"
-  "github.com/charmixer/meui/environment"
+  idp "github.com/opensentry/idp/client"
+  "github.com/opensentry/meui/config"
+  "github.com/opensentry/meui/environment"
   "fmt"
 )
 

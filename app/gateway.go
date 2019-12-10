@@ -11,11 +11,11 @@ import (
   "github.com/gin-contrib/sessions"
   oidc "github.com/coreos/go-oidc"
 
-  idp "github.com/charmixer/idp/client"
-  "github.com/charmixer/meui/config"
-  "github.com/charmixer/meui/environment"
+  idp "github.com/opensentry/idp/client"
+  "github.com/opensentry/meui/config"
+  "github.com/opensentry/meui/environment"
 
-  aap "github.com/charmixer/aap/client"
+  aap "github.com/opensentry/aap/client"
   bulky "github.com/charmixer/bulky/client"
 )
 

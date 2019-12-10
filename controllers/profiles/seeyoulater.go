@@ -6,7 +6,7 @@ import (
   "github.com/gin-gonic/gin"
   "github.com/gin-contrib/sessions"
 
-  "github.com/charmixer/meui/environment"
+  "github.com/opensentry/meui/environment"
 )
 
 func ShowSeeYouLater(env *environment.State) gin.HandlerFunc {

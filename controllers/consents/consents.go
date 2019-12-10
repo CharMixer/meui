@@ -5,12 +5,12 @@ import (
   "github.com/sirupsen/logrus"
   "github.com/gin-gonic/gin"
 
-  "github.com/charmixer/meui/app"
-  "github.com/charmixer/meui/config"
-  "github.com/charmixer/meui/environment"
+  "github.com/opensentry/meui/app"
+  "github.com/opensentry/meui/config"
+  "github.com/opensentry/meui/environment"
 
-  aap "github.com/charmixer/aap/client"
-  idp "github.com/charmixer/idp/client"
+  aap "github.com/opensentry/aap/client"
+  idp "github.com/opensentry/idp/client"
 
   bulky "github.com/charmixer/bulky/client"
 )

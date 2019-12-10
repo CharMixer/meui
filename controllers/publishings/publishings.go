@@ -11,13 +11,13 @@ import (
 
   bulky "github.com/charmixer/bulky/client"
 
-  aap "github.com/charmixer/aap/client"
-  _ "github.com/charmixer/idp/client"
+  aap "github.com/opensentry/aap/client"
+  _ "github.com/opensentry/idp/client"
 
-  "github.com/charmixer/meui/config"
-  "github.com/charmixer/meui/environment"
+  "github.com/opensentry/meui/config"
+  "github.com/opensentry/meui/environment"
 
-  "github.com/charmixer/meui/app"
+  "github.com/opensentry/meui/app"
 )
 
 func ShowPublishings(env *environment.State) gin.HandlerFunc {

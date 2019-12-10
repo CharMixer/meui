@@ -8,13 +8,13 @@ import (
 
   bulky "github.com/charmixer/bulky/client"
 
-  aap "github.com/charmixer/aap/client"
-  idp "github.com/charmixer/idp/client"
+  aap "github.com/opensentry/aap/client"
+  idp "github.com/opensentry/idp/client"
 
-  "github.com/charmixer/meui/config"
-  "github.com/charmixer/meui/environment"
+  "github.com/opensentry/meui/config"
+  "github.com/opensentry/meui/environment"
 
-  "github.com/charmixer/meui/app"
+  "github.com/opensentry/meui/app"
   f "github.com/go-playground/form"
   "fmt"
 )
