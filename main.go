@@ -225,6 +225,8 @@ func serve(env *environment.State) {
 
     // Clients
     ep.GET(  "/clients",                clients.ShowClients(env))
+    ep.GET(  "/clients/edit",           clients.ShowClientEdit(env))
+    ep.POST( "/clients/edit",           clients.SubmitClientEdit(env))
     ep.GET(  "/clients/delete",         clients.ShowClientDelete(env))
     ep.POST( "/clients/delete",         clients.SubmitClientDelete(env))
     ep.GET(  "/client",                 clients.ShowClient(env))

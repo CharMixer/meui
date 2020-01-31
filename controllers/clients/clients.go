@@ -22,6 +22,7 @@ type ClientTemplate struct {
   Name string
   Description string
   Secret string
+  ClientEditUrl string
   GrantsUrl string
   SubscriptionsUrl string
   DeleteUrl string
@@ -57,6 +58,13 @@ func ShowClients(env *environment.State) gin.HandlerFunc {
       return
     }
 
+    clientEditUrl, err := url.Parse(config.GetString("meui.public.url") + config.GetString("meui.public.endpoints.clients"))
+    if err != nil {
+      log.Debug(err.Error())
+      c.AbortWithStatus(http.StatusInternalServerError)
+      return
+    }
+
     grantsUrl, err := url.Parse(config.GetString("meui.public.url") + config.GetString("meui.public.endpoints.access.grant"))
     if err != nil {
       log.Debug(err.Error())
@@ -86,13 +94,17 @@ func ShowClients(env *environment.State) gin.HandlerFunc {
 
       for _, client := range clients {
 
+        _clientEditUrl := *clientEditUrl
+        q := _clientEditUrl.Query()
+        q.Add("id", client.Id)
+        _clientEditUrl.RawQuery = q.Encode()
+
         _grantsUrl := *grantsUrl
-        q := _grantsUrl.Query()
+        q = _grantsUrl.Query()
         q.Add("receiver", client.Id)
         _grantsUrl.RawQuery = q.Encode()
 
         _subscriptionsUrl := *subscriptionsUrl
-        fmt.Println(_subscriptionsUrl.String())
         q = _subscriptionsUrl.Query()
         q.Add("receiver", client.Id)
         _subscriptionsUrl.RawQuery = q.Encode()
@@ -107,6 +119,7 @@ func ShowClients(env *environment.State) gin.HandlerFunc {
           Name:      client.Name,
           Description: client.Description,
           Secret: client.Secret,
+          ClientEditUrl: _clientEditUrl.String(),
           GrantsUrl: _grantsUrl.String(),
           SubscriptionsUrl: _subscriptionsUrl.String(),
           DeleteUrl: _deleteUrl.String(),

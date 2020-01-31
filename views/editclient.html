@@ -1,0 +1,185 @@
+{{ template "htmlbegin" . }}
+{{ template "dashboardbegin" . }}
+
+  <div class="ui segments">
+
+    <div class="ui segment">
+
+    <form class="ui form" action="{{ .formUrl }}" method="post">
+      {{ .csrfField }}
+
+      <div class="ui teal ribbon label">
+        <i class="code icon"></i> Create
+      </div>
+      <span>Create a client</span>
+
+      <div class="ui hidden divider"></div>
+
+      <div class="ui error message"></div>
+
+      <div class="required field">
+        <div class="ui left icon input focus">
+          <i class="code icon"></i>
+          <input type="text" name="Name" placeholder="Name" value="{{ .form.Name }}" required />
+        </div>
+      </div>
+
+      <div class="required field">
+        <div class="ui left icon input focus">
+          <i class="info icon"></i>
+          <input type="text" name="Description" autocomplete="Description" placeholder="Description" value="{{ .form.Description }}" required />
+        </div>
+      </div>
+
+      {{ if .form.RedirectUris }}
+        {{ range $i, $uri := .form.RedirectUris }}
+        <div class="field">
+          <div class="ui left icon action input focus">
+            <i class="world icon"></i>
+            <input type="text" name="RedirectUri" placeholder="Redirect uri" value="{{ $uri }}" />
+            {{ if eq $i 0 }}
+              <button type="button" class="ui green icon button add">
+                <i class="add icon"></i>
+              </button>
+            {{ else }}
+              <button type="button" class="ui red icon button remove">
+                <i class="remove icon"></i>
+              </button>
+            {{ end }}
+          </div>
+        </div>
+        {{ end }}
+      {{ else }}
+        <div class="field">
+          <div class="ui left icon action input focus">
+            <i class="world icon"></i>
+            <input type="text" name="RedirectUri" placeholder="Redirect uri" />
+            <button type="button" class="ui green icon button add">
+              <i class="add icon"></i>
+            </button>
+          </div>
+        </div>
+      {{ end }}
+
+      {{ if .form.PostLogoutRedirectUris }}
+        {{ range $i, $uri := .form.PostLogoutRedirectUris }}
+        <div class="field">
+          <div class="ui left icon action input focus">
+            <i class="world icon"></i>
+            <input type="text" name="PostLogoutRedirectUri" placeholder="Post logout redirect uri" value="{{ $uri }}" />
+            {{ if eq $i 0 }}
+              <button type="button" class="ui green icon button add">
+                <i class="add icon"></i>
+              </button>
+            {{ else }}
+              <button type="button" class="ui red icon button remove">
+                <i class="remove icon"></i>
+              </button>
+            {{ end }}
+          </div>
+        </div>
+        {{ end }}
+      {{ else }}
+        <div class="field">
+          <div class="ui left icon action input focus">
+            <i class="world icon"></i>
+            <input type="text" name="PostLogoutRedirectUri" placeholder="Post logout redirect uri" />
+            <button type="button" class="ui green icon button add">
+              <i class="add icon"></i>
+            </button>
+          </div>
+        </div>
+      {{ end }}
+
+      {{ $v := .form.TokenEndpointAuthMethod }}
+      <div class="field">
+        <select name="TokenEndpointAuthMethod" class="ui dropdown">
+          <option value="">Token endpoint auth method</option>
+          {{ range $option := .tokenEndpointAuthMethods }}
+          <option
+            {{ if eq $option $v }}selected="selected"{{ end }}
+            value="{{ $option }}">{{ $option }}</option>
+          {{ end }}
+        </select>
+      </div>
+
+      {{ $tmp := .form.GrantTypes }}
+      <div class="field">
+        <select name="GrantTypes" class="ui dropdown" multiple>
+          <option value="">Grant type</option>
+          {{ range $option := .grantTypes }}
+            <option
+              {{ range $v := $tmp }}
+                {{ if eq $option $v }}selected="selected"{{ end }}
+              {{ end }}
+              value="{{ $option }}">{{ $option }}</option>
+          {{ end }}
+        </select>
+      </div>
+
+
+      {{ $tmp := .form.ResponseTypes }}
+      <div class="field">
+        <select name="ResponseTypes" class="ui dropdown" multiple>
+          <option value="">Response type</option>
+          {{ range $option := .responseTypes }}
+          <option
+            {{ range $v := $tmp }}
+              {{ if eq $option $v }}selected="selected"{{ end }}
+            {{ end }}
+            value="{{ $option }}">{{ $option }}</option>
+          {{ end }}
+        </select>
+      </div>
+
+      <div class="ui toggle checkbox">
+        <input type="checkbox" name="IsPublic">
+        <label><span data-tooltip="Client is for use in a system that is incapable of protecting a secret, hence it wont be generated">Client is public (Mobile App)</span></label>
+      </div>
+
+      <div class="ui hidden divider"></div>
+
+      <button class="ui green button" type="submit"><i class="save icon"></i> Create Client</button>
+
+    </form>
+
+    </div>
+
+  </div>
+
+<script type="text/javascript">
+  $(function(){
+    $('.ui.dropdown').dropdown();
+
+    $("body").on("click", "input[name^=RedirectUri] ~ .button, input[name^=PostLogoutRedirectUri] ~ .button", function(e){
+      e.preventDefault();
+      var field = $(this).closest(".field");
+      if ( field.find(".button").hasClass("green") ) {
+        clone(field);
+      } else {
+        remove(field);
+      }
+      return false;
+    });
+
+    function clone(field) {
+      var newField = field.clone();
+      newField.find("input").val("");
+      newField.css("display", "none");
+      field.after(newField);
+      newField.slideDown();
+      newField.find(".button").removeClass("green").addClass("red")
+              .find("i").removeClass("add").addClass("remove");
+    }
+
+    function remove(field) {
+      field.slideUp(function(){
+        $(this).remove();
+      });
+    }
+
+  });
+</script>
+
+{{ template "dashboardend" . }}
+{{ template "htmlend" . }}
