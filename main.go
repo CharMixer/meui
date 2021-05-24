@@ -20,7 +20,7 @@ import (
   "github.com/gorilla/csrf"
   "github.com/gwatts/gin-adapter"
   "github.com/gofrs/uuid"
-  oidc "github.com/coreos/go-oidc"
+  oidc "github.com/coreos/go-oidc/v3/oidc"
   "github.com/pborman/getopt"
 
   "github.com/opensentry/meui/app"
@@ -297,19 +297,19 @@ func RequestLogger(env *environment.State) gin.HandlerFunc {
     stop := time.Now()
     latency := stop.Sub(start)
 
-      ipData, err := utils.GetRequestIpData(c.Request)
-      if err != nil {
-        log.WithFields(appFields).WithFields(logrus.Fields{
-          "func": "RequestLogger",
-        }).Debug(err.Error())
-      }
+		ipData, err := utils.GetRequestIpData(c.Request)
+		if err != nil {
+			log.WithFields(appFields).WithFields(logrus.Fields{
+				"func": "RequestLogger",
+			}).Debug(err.Error())
+		}
 
-      forwardedForIpData, err := utils.GetForwardedForIpData(c.Request)
-      if err != nil {
-        log.WithFields(appFields).WithFields(logrus.Fields{
-          "func": "RequestLogger",
-        }).Debug(err.Error())
-      }
+		forwardedForIpData, err := utils.GetForwardedForIpData(c.Request)
+		if err != nil {
+			log.WithFields(appFields).WithFields(logrus.Fields{
+				"func": "RequestLogger",
+			}).Debug(err.Error())
+		}
 
     method := c.Request.Method
     statusCode := c.Writer.Status()
@@ -317,14 +317,14 @@ func RequestLogger(env *environment.State) gin.HandlerFunc {
 
     bodySize := c.Writer.Size()
 
-      var fullpath string = path
+		var fullpath string = path
     if raw != "" {
-    fullpath = path + "?" + raw
+			fullpath = path + "?" + raw
     }
 
     // if public data is requested successfully, then dont log it since its just spam when debugging
     if strings.Contains(path, "/public/") && ( statusCode == http.StatusOK || statusCode == http.StatusNotModified ) {
-     return
+			return
     }
 
     log.WithFields(appFields).WithFields(logrus.Fields{

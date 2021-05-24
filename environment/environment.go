@@ -3,7 +3,7 @@ package environment
 import (
   "golang.org/x/oauth2"
   "golang.org/x/oauth2/clientcredentials"
-  oidc "github.com/coreos/go-oidc"
+  oidc "github.com/coreos/go-oidc/v3/oidc"
 )
 
 type SessionKeys struct {

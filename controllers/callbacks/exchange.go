@@ -6,7 +6,7 @@ import (
   "github.com/sirupsen/logrus"
   "github.com/gin-gonic/gin"
   "github.com/gin-contrib/sessions"
-  oidc "github.com/coreos/go-oidc"
+  oidc "github.com/coreos/go-oidc/v3/oidc"
 
   "github.com/opensentry/meui/config"
   "github.com/opensentry/meui/environment"

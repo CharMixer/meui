@@ -8,7 +8,7 @@ import (
   "github.com/gorilla/csrf"
   "github.com/gin-contrib/sessions"
   "golang.org/x/oauth2"
-  oidc "github.com/coreos/go-oidc"
+  oidc "github.com/coreos/go-oidc/v3/oidc"
 
   bulky "github.com/charmixer/bulky/client"
 

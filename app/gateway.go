@@ -9,7 +9,7 @@ import (
   "github.com/sirupsen/logrus"
   "github.com/gin-gonic/gin"
   "github.com/gin-contrib/sessions"
-  oidc "github.com/coreos/go-oidc"
+  oidc "github.com/coreos/go-oidc/v3/oidc"
 
   idp "github.com/opensentry/idp/client"
   "github.com/opensentry/meui/config"
