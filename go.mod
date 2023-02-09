@@ -6,7 +6,7 @@ require (
 	github.com/charmixer/bulky v0.0.0-20210207184256-e3c22de48569
 	github.com/coreos/go-oidc/v3 v3.0.0
 	github.com/gin-contrib/sessions v0.0.3
-	github.com/gin-gonic/gin v1.6.3
+	github.com/gin-gonic/gin v1.7.7
 	github.com/go-playground/form v3.1.4+incompatible
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/gorilla/csrf v1.7.0
