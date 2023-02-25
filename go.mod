@@ -16,7 +16,7 @@ require (
 	github.com/pborman/getopt v1.1.0
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/viper v1.7.1
-	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
+	golang.org/x/net v0.7.0
 	golang.org/x/oauth2 v0.0.0-20210201163806-010130855d6c
 	gopkg.in/go-playground/validator.v9 v9.31.0
 )
